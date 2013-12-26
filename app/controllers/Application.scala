@@ -21,7 +21,11 @@ object Application extends Controller {
 
 		val query = langPath(lang)
 
-		Ok(s"<xml>$query</xml>")
+    Ok(BaseXConnection.server.withQuery("oscr", query)(
+      results =>
+        results.next().toString
+    ))
+//		Ok(s"<xml>$query</xml>")
 	}
 	//  app.post('/authenticate', function (req, res) {
 	//  app.get('/i18n/:lang', function (req, res) {
@@ -58,5 +62,5 @@ object Application extends Controller {
 }
 
 object BaseXConnection {
-	val server = new BaseX(host = "localhost", port = 1985, eport = 1986, user = "admin", pass = "admin")
+	val server = new BaseX(host = "localhost", port = 1984, eport = 2013, user = "admin", pass = "admin")
 }
