@@ -3,16 +3,17 @@ package controllers
 import play.api._
 import play.api.mvc._
 import eu.delving.basex.client._
+import org.basex.server.ClientSession
 
 object Application extends Controller {
 
-  def langDocument(lang: String) = {
-    "/i18n/" + lang + ".xml"
-  }
+	def langDocument(lang: String) = {
+		"/i18n/" + lang + ".xml"
+	}
 
-  def langPath(lang: String) = {
-    "doc('oscr" + langDocument(lang) + "')/Language"
-  }
+	def langPath(lang: String) = {
+		"doc('oscr" + langDocument(lang) + "')/Language"
+	}
 
 	def index = Action {
 		Ok(views.html.index("OSCR says hello!"))
@@ -22,14 +23,17 @@ object Application extends Controller {
 
 		val query = langPath(lang)
 
-    Ok(BaseXConnection.server.withQuery("oscr", query)(
-      results =>
-        results.next().toString
-    ))
-//		Ok(s"<xml>$query</xml>")
+		BaseXConnection.withSession {
+			session =>
+				session.findOneRaw(query) match {
+					case Some(xml) => Ok(xml)
+					case None => NotFound
+				}
+		}
 	}
+
 	//  app.post('/authenticate', function (req, res) {
-	//  app.get('/i18n/:lang', function (req, res) {
+	//  app.get('/i18n/:lang', function (req, res) { DONE
 	//  app.post('/i18n/:lang/element', function (req, res) {
 	//  app.post('/i18n/:lang/label', function (req, res) {
 	//  app.post('/i18n/:lang/save', function (req, res) {
@@ -63,5 +67,12 @@ object Application extends Controller {
 }
 
 object BaseXConnection {
-	val server = new BaseX(host = "localhost", port = 1984, eport = 2013, user = "admin", pass = "admin")
+	lazy val server = new BaseX(host = "localhost", port = 1984, eport = 2013, user = "admin", pass = "admin")
+
+	def withSession[T](block: ClientSession => T) = {
+		server.withSession("oscr") {
+			session =>
+				block(session)
+		}
+	}
 }
