@@ -4,7 +4,8 @@ import play.api._
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
-import play.api.libs.json.{JsString, Json, JsObject}
+import play.api.libs.json.{JsValue, JsString, Json, JsObject}
+import play.mvc.Http.Response
 
 object Application extends Controller {
 
@@ -48,27 +49,28 @@ object Application extends Controller {
     )
   )
 
-  def setLangLabel(lang: String): Action[AnyContent] = Action {
-    request =>
-      request.body.asJson.map {
-        json =>
-          ((json \ "key").asOpt[String], (json \ "label").asOpt[String]) match {
-            case (Some(key), Some(label)) =>
-              BaseXConnection.withSession {
-                session =>
-                  val labelPath = langPath(lang) + "/label"
-                  val keyPath = labelPath + "/" + key
-                  val command = s"if (exists($keyPath))" +
-                    s" then replace value of node $keyPath with ${quote(label)}" +
-                    s" else insert node <$key>${inXml(label)}</$key> into $labelPath"
-                  execute(command, session)
-                  langResponse(lang, session)
-              }
-            case _ =>
-              BadRequest("Missing key or label")
-          }
-      }.getOrElse(BadRequest("Expected JSON"))
+  def jsonBody(request: Request[AnyContent])(block: JsValue => Result): Result = {
+    request.body.asJson.map(block).getOrElse(BadRequest("Expected JSON"))
   }
+
+  def setLangLabel(lang: String): Action[AnyContent] = Action(jsonBody(_) {
+    json =>
+      ((json \ "key").asOpt[String], (json \ "label").asOpt[String]) match {
+        case (Some(key), Some(label)) =>
+          BaseXConnection.withSession {
+            session =>
+              val labelPath = langPath(lang) + "/label"
+              val keyPath = labelPath + "/" + key
+              val command = s"if (exists($keyPath))" +
+                s" then replace value of node $keyPath with ${quote(label)}" +
+                s" else insert node <$key>${inXml(label)}</$key> into $labelPath"
+              execute(command, session)
+              langResponse(lang, session)
+          }
+        case _ =>
+          BadRequest("Missing key or label")
+      }
+  })
 
   //  app.post('/authenticate', function (req, res) {
   //  app.post('/i18n/:lang/element', function (req, res) {
