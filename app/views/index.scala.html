@@ -1,7 +1,14 @@
 @(message: String)
+<!DOCTYPE html>
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
-}
+<html>
+    <head>
+        <title>Play-OSCR</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.at("images/favicon.ico")">
+        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+    </head>
+    <body>
+        <h1>Hello there OSCR!</h1>
+    </body>
+</html>
