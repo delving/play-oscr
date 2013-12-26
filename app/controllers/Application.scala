@@ -6,18 +6,19 @@ import eu.delving.basex.client._
 
 object Application extends Controller {
 
+  def langDocument(lang: String) = {
+    "/i18n/" + lang + ".xml"
+  }
+
+  def langPath(lang: String) = {
+    "doc('oscr" + langDocument(lang) + "')/Language"
+  }
+
 	def index = Action {
 		Ok(views.html.index("OSCR says hello!"))
 	}
 
 	def getLang(lang: String) = Action {
-		def langDocument(lang: String) = {
-			"/i18n/" + lang + ".xml"
-		}
-
-		def langPath(lang: String) = {
-			"doc('oscr" + langDocument(lang) + "')/Language"
-		}
 
 		val query = langPath(lang)
 
