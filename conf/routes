@@ -3,7 +3,9 @@
 # ~~~~
 
 # Home page
-GET        /                    controllers.Application.index
+GET        /                  controllers.Application.index
+GET        /i18n/:lang        controllers.Application.getLang(lang: String)
+GET        /assets/*file        controllers.Assets.at(path="/public", file)
 
 
 #  app.post('/authenticate', function (req, res) {
@@ -39,6 +41,3 @@ GET        /                    controllers.Application.index
 #  app.get('/snapshot/:fileName', function (req, res) {
 #  app.get('/snapshot', function (req, res) {
 
-
-# Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file        controllers.Assets.at(path="/public", file)

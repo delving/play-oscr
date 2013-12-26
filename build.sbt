@@ -2,16 +2,10 @@ name := "play-oscr"
 
 version := "1.0-SNAPSHOT"
 
+resolvers += "Delving Releases Repository" at "http://development.delving.org:8081/nexus/content/groups/public"
 
+libraryDependencies += "eu.delving" % "basex-scala-client" % "0.6.1"
 
-libraryDependencies ++= Seq(
-//  jdbc,
-//  anorm,
-//  cache
-)
+val appDependencies = Seq()
 
-val appDependencies = Seq(
-  "eu.delving"                %% "basex-scala-client"              % "0.6.1"
-)
-
-play.Project.playScalaSettings
+play.Project(name.toString, version.toString, appDependencies).settings
