@@ -5,14 +5,12 @@
 # Home page
 GET        /                    controllers.Application.index
 GET        /i18n/:lang          controllers.Application.getLang(lang: String)
-POST       /i18n/:lang/label    controllers.Application.labelLang(lang: String)
+POST       /i18n/:lang/label    controllers.Application.setLangLabel(lang: String)
 GET        /assets/*file        controllers.Assets.at(path="/public", file)
 
 
 #  app.post('/authenticate', function (req, res) {
-#  app.get('/i18n/:lang', function (req, res) {
 #  app.post('/i18n/:lang/element', function (req, res) {
-#  app.post('/i18n/:lang/label', function (req, res) {
 #  app.post('/i18n/:lang/save', function (req, res) {
 #  app.get('/statistics', function (req, res) {
 #  app.get('/person/user/fetch/:identifier', function (req, res) {
