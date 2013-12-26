@@ -3,8 +3,9 @@
 # ~~~~
 
 # Home page
-GET        /                  controllers.Application.index
-GET        /i18n/:lang        controllers.Application.getLang(lang: String)
+GET        /                    controllers.Application.index
+GET        /i18n/:lang          controllers.Application.getLang(lang: String)
+POST       /i18n/:lang/label    controllers.Application.labelLang(lang: String)
 GET        /assets/*file        controllers.Assets.at(path="/public", file)
 
 

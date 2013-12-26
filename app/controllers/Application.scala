@@ -4,6 +4,7 @@ import play.api._
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
+import play.api.libs.json.{JsString, Json, JsObject}
 
 object Application extends Controller {
 
@@ -29,6 +30,48 @@ object Application extends Controller {
 					case Some(xml) => Ok(xml)
 					case None => NotFound
 				}
+		}
+	}
+
+	def labelLang(lang: String) = Action {
+		request =>
+			val reqObject = request.body.asJson.get.as[JsObject].value
+			val keyOpt = reqObject.get("key")
+			keyOpt match {
+				case Some(key) => {
+					val newLabel = reqObject("label")
+					updateLabel(lang, key.toString(), newLabel.toString())
+					Redirect("/i18n/" + lang)
+				}
+				case None => NotFound
+			}
+	}
+
+	private def updateLabel(lang: String, key: String, value: String) {
+		val labelPath = langPath(lang) + "/label"
+		val keyPath = labelPath + "/" + key
+		BaseXConnection.withSession {
+			session =>
+				val command =
+					"if (exists(" + keyPath + "))" +
+					  "then replace value of node " + keyPath + " with " + util.quote(value) +
+					  "else insert node <" + key + ">" + util.inXml(value) + "</" + key + "> into " + labelPath
+				Logger.info(command)
+				session.execute("<xquery><![CDATA[\n" + command + "\n]]></xquery>")
+		}
+	}
+
+	object util {
+		def inXml(value: String) = {
+			value.replace("<", "&lt;").replace(">", "&gt;")
+		}
+
+		def quote(value: String) = {
+			value match {
+				case "" => "''"
+				case string =>
+					"'" + string.replace("'", "\'\'") + "'"
+			}
 		}
 	}
 
