@@ -58,5 +58,5 @@ object Application extends Controller {
 }
 
 object BaseXConnection {
-	val server = new BaseX(host = "fooHost", port = 1234, eport = 1235, user = "admin", pass = "secret")
+	val server = new BaseX(host = "localhost", port = 1985, eport = 1986, user = "admin", pass = "admin")
 }
