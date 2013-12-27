@@ -4,6 +4,8 @@ import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
 import storage.{BaseXConnection, BaseXBridge}
+import play.api.libs.json.JsValue
+import java.util.Date
 
 object Person extends Controller with BaseXBridge {
 
@@ -19,9 +21,9 @@ object Person extends Controller with BaseXBridge {
 
 	//  app.get('/person/user/select', function (req, res) {
 	def getUser(identifier: String) = Action(
-		BaseXConnection.withSession(
+		BaseXConnection.withSession {
 			session => resultForQuery(userPath(identifier), session)
-		)
+    }
 	)
 
 
@@ -34,16 +36,15 @@ object Person extends Controller with BaseXBridge {
 
 	//  app.get('/person/user/all', function (req, res) {
 	def getAllUsers = Action(
-		BaseXConnection.withSession(
-			session => {
+		BaseXConnection.withSession {
+			session =>
 				val xmlList = session.find(userCollection).toList
 				Ok(
 					<Users>
 						{for (user <- xmlList) yield user}
 					</Users>
 				)
-			}
-		)
+    }
 	)
 
 	//  app.get('/person/group/select', function (req, res) {
@@ -73,9 +74,18 @@ object Person extends Controller with BaseXBridge {
 	}
 
 	//  app.post('/person/group/save', function (req, res) {
+  def saveGroup() = Action(parse.json) {
+    request: Request[JsValue] =>
+      val group = request.body
+      group \ "SaveTime" = new Date().getTime
+      group \ "Identifier" = (group \ "Identifier").asOpt[JsValue] match {
+        case Some(existing) => existing
+        case None =>
+      }
+      NotFound
+  }
 
-
-	//  app.get('/person/group/:identifier/users', function (req, res) {
+  //  app.get('/person/group/:identifier/users', function (req, res) {
 	def getUsersInGroup(identifier: String) = Action {
 		BaseXConnection.withSession {
 			session =>
@@ -87,5 +97,6 @@ object Person extends Controller with BaseXBridge {
 				resultForQuery(query.toString(), session)
 		}
 	}
+
 }
 
