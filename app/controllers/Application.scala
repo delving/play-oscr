@@ -11,7 +11,7 @@ object Application extends Controller with BaseXBridge {
     Ok(views.html.index("OSCR says hello!"))
   }
 
-  def langResponse(lang: String, session: ClientSession) = session.findOneRaw(langPath(lang)) match {
+  def langResponse(lang: String, session: ClientSession) = session.findOne(langPath(lang)) match {
     case Some(xml) => Ok(xml)
     case None => NotFound
   }
