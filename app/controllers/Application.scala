@@ -3,24 +3,16 @@ package controllers
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
-import storage.{BaseXConnection, BaseXBridge}
+import storage.{BaseXController, BaseXConnection, BaseXBridge}
 
-object Application extends Controller with BaseXBridge {
+object Application extends BaseXController {
 
-  def index = Action {
-    Ok(views.html.index("OSCR says hello!"))
-  }
+  def index = Action(Ok(views.html.index("OSCR says hello!")))
 
-  def langResponse(lang: String, session: ClientSession) = session.findOne(langPath(lang)) match {
-    case Some(xml) => Ok(xml)
-    case None => NotFound
-  }
+  def langResponse(lang: String, session: ClientSession) = findOneResult(langPath(lang), session)
 
   def getLang(lang: String) = Action(
-    BaseXConnection.withSession(
-      session =>
-        langResponse(lang, session)
-    )
+    BaseXConnection.withSession(langResponse(lang, _))
   )
 
   def setLangLabel(lang: String) = Action(parse.json) {

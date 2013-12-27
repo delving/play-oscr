@@ -2,61 +2,36 @@ package controllers
 
 import play.api.mvc._
 import eu.delving.basex.client._
-import org.basex.server.ClientSession
-import storage.{BaseXConnection, BaseXBridge}
-import play.api.libs.json.JsValue
+import storage.{BaseXController, BaseXConnection}
 import java.util.Date
 
-object Person extends Controller with BaseXBridge {
+object Person extends BaseXController {
 
 	//  app.post('/person/group/:identifier/add', function (req, res) {
 	//  app.post('/person/group/:identifier/remove', function (req, res) {
 
-	def resultForQuery(query: String, session: ClientSession): Result = {
-		session.findOne(query) match {
-			case Some(xml) => Ok(xml)
-			case None => NotFound
-		}
-	}
-
-	//  app.get('/person/user/select', function (req, res) {
 	def getUser(identifier: String) = Action(
-		BaseXConnection.withSession {
-			session => resultForQuery(userPath(identifier), session)
-    }
+		BaseXConnection.withSession(findOneResult(userPath(identifier), _))
 	)
 
-
-	//  app.get('/person/group/fetch/:identifier', function (req, res) {
 	def fetchGroup(identifier: String) = Action {
-		BaseXConnection.withSession {
-			session => resultForQuery(groupPath(identifier), session)
-		}
+		BaseXConnection.withSession(findOneResult(groupPath(identifier), _))
 	}
 
-	//  app.get('/person/user/all', function (req, res) {
 	def getAllUsers = Action(
-		BaseXConnection.withSession {
-			session =>
+		BaseXConnection.withSession(
+			session => {
 				val xmlList = session.find(userCollection).toList
-				Ok(
-					<Users>
-						{for (user <- xmlList) yield user}
-					</Users>
-				)
-    }
+				Ok(<Users>{for (user <- xmlList) yield user}</Users>)
+			}
+		)
 	)
 
-	//  app.get('/person/group/select', function (req, res) {
 	def selectGroup(q: String) = Action {
 		BaseXConnection.withSession {
 			session =>
-			  	val query =
-					<Groups>
-						{{ {groupCollection}[contains(lower-case(Name), lower-case({quote(q.toLowerCase)}))] }}
-					</Groups>
-
-				resultForQuery(query.toString(), session)
+        val query = <Groups>{{ {groupCollection}[contains(lower-case(Name), lower-case({quote(q.toLowerCase)}))] }}</Groups>
+        findOneResult(query.toString(), session)
 		}
 	}
 
@@ -64,37 +39,27 @@ object Person extends Controller with BaseXBridge {
 	def selectAllGroups = Action {
 		BaseXConnection.withSession {
 			session =>
-				val query =
-					<Groups>
-						{{ {groupCollection} }}
-					</Groups>
-
-				resultForQuery(query.toString(), session)
+				val query = <Groups>{{ {groupCollection} }}</Groups>
+        findOneResult(query.toString(), session)
 		}
 	}
 
 	//  app.post('/person/group/save', function (req, res) {
-  def saveGroup() = Action(parse.json) {
-    request: Request[JsValue] =>
-      val group = request.body
-      group \ "SaveTime" = new Date().getTime
-      group \ "Identifier" = (group \ "Identifier").asOpt[JsValue] match {
-        case Some(existing) => existing
-        case None =>
-      }
-      NotFound
-  }
+  def saveGroup() = play.mvc.Results.TODO
+//  def saveGroup() = Action(parse.json) {
+//    request =>
+//      val group = request.body
+//      group \ "SaveTime" = new Date().getTime
+//      group \ "Identifier" = (group \ "Identifier").asOpt[String] getOrElse ""
+//      NotFound
+//  }
 
   //  app.get('/person/group/:identifier/users', function (req, res) {
 	def getUsersInGroup(identifier: String) = Action {
 		BaseXConnection.withSession {
 			session =>
-				val query =
-					<Users>
-						{{ {userCollection}[Memberships/Membership/GroupIdentifier={quote(identifier)}] }}
-					</Users>
-
-				resultForQuery(query.toString(), session)
+				val query = <Users>{{ {userCollection}[Memberships/Membership/GroupIdentifier={quote(identifier)}] }}</Users>
+        findOneResult(query.toString(), session)
 		}
 	}
 

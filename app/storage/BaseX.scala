@@ -1,8 +1,21 @@
 package storage
 
-import eu.delving.basex.client.BaseX
+import eu.delving.basex.client._
 import org.basex.server.ClientSession
+import play.api.mvc.{Result, Controller}
 import java.util.Date
+import java.text.SimpleDateFormat
+
+class BaseXController extends Controller with BaseXBridge {
+
+  def findOneResult(query: String, session: ClientSession): Result = {
+    session.findOne(query) match {
+      case Some(xml) => Ok(xml)
+      case None => NotFound
+    }
+  }
+
+}
 
 object BaseXConnection {
 	lazy val server = new BaseX(host = "localhost", port = 1984, eport = 2013, user = "admin", pass = "admin")
@@ -17,12 +30,9 @@ object BaseXConnection {
 
 trait BaseXBridge {
 
-
 	val database = "oscr"
 
-	def langDocument(lang: String) = {
-		s"/i18n/$lang.xml"
-	}
+	def langDocument(lang: String) = s"/i18n/$lang.xml"
 
 	def langPath(lang: String): String = s"doc('$database${langDocument(lang)}')/Language"
 
@@ -40,48 +50,17 @@ trait BaseXBridge {
 
 	def groupPath(identifier: String) = s"doc('$database${groupDocument(identifier)}')/Group"
 
-  def generateId(prefix: String) = {
-    val millisSince2013 = (new Date().getTime - new Date(2013, 1, 1).getTime).toLong
-    val randomNumber = Math.floor(Math.random() * 36 * 36 * 36).toLong
-    val randomString: String = java.lang.Long.toString(randomNumber, 36)
-    val padded: String = randomString.reverse.padTo(3, "0").toString().reverse
-    s"OSCR-$prefix-${java.lang.Long.toString(millisSince2013, 36)}-$padded"
-  }
+  def vocabDocument(vocabName: String) = s"/vocabulary/$vocabName.xml"
 
-	//  this.vocabDocument = function (vocabName) {
-	//    return "/vocabulary/" + vocabName + ".xml";
-	//  };
-	//
-	//  this.vocabPath = function (vocabName) {
-	//    return "doc('" + this.database + this.vocabDocument(vocabName) + "')";
-	//  };
-	//
-	//  this.vocabExists = function (vocabName) {
-	//    return "db:exists('" + this.database + "','" + this.vocabDocument(vocabName) + "')";
-	//  };
-	//
-	//  this.vocabAdd = function (vocabName, xml) {
-	//    return "db:add('" + this.database + "', " + xml + ",'" + this.vocabDocument(vocabName) + "')";
-	//  };
-	//
-	//  this.docDocument = function (schemaName, identifier) {
-	//    if (!schemaName) throw new Error("No schema name!");
-	//    if (!identifier) throw new Error("No identifier!");
-	//    return "/documents/" + schemaName + "/" + identifier + ".xml";
-	//  };
-	//
-	//  this.docPath = function (schemaName, identifier) {
-	//    return "doc('" + this.database + this.docDocument(schemaName, identifier) + "')/Document";
-	//  };
-	//
-	//  this.logDocument = function () {
-	//    var now = new Date();
-	//    return "/log/" + now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + ".xml";
-	//  };
-	//
-	//  this.logPath = function () {
-	//    return "doc('" + this.database + this.logDocument() + "')";
-	//  };
+  def vocabPath(vocabName:String) = s"doc('$database${vocabDocument(vocabName)}')"
+
+  def vocabExists(vocabName: String) = s"db:exists('$database','${vocabDocument(vocabName)}')"
+
+  def vocabAdd(vocabName: String, xml:String) = s"db:add('$database', $xml,'${vocabDocument(vocabName)}')"
+
+  def logDocument = s"/log/${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}.xml"
+
+  def logPath= s"doc('$database$logDocument')"
 
 	def schemaPath = s"doc('$database/Schemas.xml')/Schemas"
 
@@ -105,5 +84,11 @@ trait BaseXBridge {
 		s"<xquery><![CDATA[$command]]></xquery>"
 	)
 
-
+  def generateId(prefix: String) = {
+    val millisSince2013 = (new Date().getTime - new Date(2013, 1, 1).getTime).toLong
+    val randomNumber = Math.floor(Math.random() * 36 * 36 * 36).toLong
+    val randomString: String = java.lang.Long.toString(randomNumber, 36)
+    val padded: String = randomString.reverse.padTo(3, "0").toString().reverse
+    s"OSCR-$prefix-${java.lang.Long.toString(millisSince2013, 36)}-$padded"
+  }
 }

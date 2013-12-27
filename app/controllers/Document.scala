@@ -3,10 +3,10 @@ package controllers
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
-import storage.{BaseXConnection, BaseXBridge}
+import storage.{BaseXController, BaseXConnection, BaseXBridge}
 import play.Logger
 
-object Document extends Controller with BaseXBridge {
+object Document extends BaseXController {
 
   val MAX_RESULTS = 30
 
@@ -14,23 +14,11 @@ object Document extends Controller with BaseXBridge {
   //  app.post('/document/save', function (req, res) {
 
   def getDocumentSchema(schemaName: String) = Action(
-    BaseXConnection.withSession(
-      session =>
-        session.findOne(s"$schemaPath/Document/$schemaName") match {
-          case Some(xml) => Ok(xml)
-          case None => NotFound
-        }
-    )
+    BaseXConnection.withSession(findOneResult(s"$schemaPath/Document/$schemaName", _))
   )
 
   def getDocument(schemaName: String, identifier: String) = Action(
-    BaseXConnection.withSession(
-      session =>
-        session.findOne(docPath(schemaName, identifier)) match {
-          case Some(xml) => Ok(xml)
-          case None => NotFound
-        }
-    )
+    BaseXConnection.withSession(findOneResult(docPath(schemaName, identifier), _))
   )
 
   def listDocuments(schemaName: String) = Action(
@@ -41,11 +29,7 @@ object Document extends Controller with BaseXBridge {
           s" return subsequence($$all, 1, $MAX_RESULTS)"
         Logger.info(query)
         val xmlList = session.find(query).toList
-        Ok(
-          <Documents>
-            {for (document <- xmlList) yield document}
-          </Documents>
-        )
+        Ok(<Documents>{for (document <- xmlList) yield document}</Documents>)
       }
     )
   )
