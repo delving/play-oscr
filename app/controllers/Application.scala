@@ -1,11 +1,8 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
-import play.api.libs.json.{JsValue, JsString, Json, JsObject}
-import play.mvc.Http.Response
 
 object Application extends Controller {
 
@@ -49,13 +46,11 @@ object Application extends Controller {
     )
   )
 
-  def jsonBody(request: Request[AnyContent])(block: JsValue => Result): Result = {
-    request.body.asJson.map(block).getOrElse(BadRequest("Expected JSON"))
-  }
-
-  def setLangLabel(lang: String): Action[AnyContent] = Action(jsonBody(_) {
-    json =>
-      ((json \ "key").asOpt[String], (json \ "label").asOpt[String]) match {
+  def setLangLabel(lang: String) = Action(parse.json) {
+    request =>
+      val keyOpt = (request.body \ "key").asOpt[String]
+      val labelOpt = (request.body \ "label").asOpt[String]
+      (keyOpt, labelOpt) match {
         case (Some(key), Some(label)) =>
           BaseXConnection.withSession {
             session =>
@@ -70,10 +65,41 @@ object Application extends Controller {
         case _ =>
           BadRequest("Missing key or label")
       }
-  })
+  }
+
+  def setLangElement(lang: String) = Action(parse.json) {
+    request =>
+      ((request.body \ "key").asOpt[String], (request.body \ "title").asOpt[String], (request.body \ "doc").asOpt[String]) match {
+        case (Some(key), Some(title), None) =>
+          BaseXConnection.withSession {
+            session =>
+              val elementPath = langPath(lang) + "/element"
+              val keyPath = elementPath + "/" + key
+              val entryPath = keyPath + "/title"
+              val command = s"if (exists($keyPath))" +
+                s"then replace value of node $entryPath with ${quote(title)}" +
+                s"else insert node <$key><title>${inXml(title)}</title><doc>?</doc></$key> into $elementPath"
+              execute(command, session)
+              langResponse(lang, session)
+          }
+        case (Some(key), None, Some(doc)) =>
+          BaseXConnection.withSession {
+            session =>
+              val elementPath = langPath(lang) + "/element"
+              val keyPath = elementPath + "/" + key
+              val entryPath = keyPath + "/doc"
+              val command = s"if (exists($keyPath))" +
+                s"then replace value of node $entryPath with ${quote(doc)}" +
+                s"else insert node <$key><title>?</title><doc>${inXml(doc)}</doc></$key> into $elementPath"
+              execute(command, session)
+              langResponse(lang, session)
+          }
+        case _ =>
+          BadRequest("Missing key or value")
+      }
+  }
 
   //  app.post('/authenticate', function (req, res) {
-  //  app.post('/i18n/:lang/element', function (req, res) {
   //  app.post('/i18n/:lang/save', function (req, res) {
   //  app.get('/statistics', function (req, res) {
   //  app.get('/person/user/fetch/:identifier', function (req, res) {
