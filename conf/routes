@@ -10,6 +10,8 @@ POST        /i18n/:lang/label          controllers.Application.setLangLabel(lang
 POST        /i18n/:lang/element        controllers.Application.setLangElement(lang: String)
 GET         /statistics                controllers.Application.getStatistics
 
+GET /person/user/fetch/:identifier controllers.Person.fetchPerson(identifier: String)
+
 GET         /assets/*file              controllers.Assets.at(path="/public", file)
 
 

@@ -3,6 +3,7 @@ package controllers
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
+import storage.{BaseXConnection, BaseXBridge}
 
 object Application extends Controller with BaseXBridge {
 
@@ -102,16 +103,6 @@ object Application extends Controller with BaseXBridge {
 
   //  app.post('/authenticate', function (req, res) {
   //  app.post('/i18n/:lang/save', function (req, res) {
-  //  app.get('/person/user/fetch/:identifier', function (req, res) {
-  //  app.get('/person/user/select', function (req, res) {
-  //  app.get('/person/user/all', function (req, res) {
-  //  app.get('/person/group/fetch/:identifier', function (req, res) {
-  //  app.get('/person/group/select', function (req, res) {
-  //  app.get('/person/group/all', function (req, res) {
-  //  app.post('/person/group/save', function (req, res) {
-  //  app.get('/person/group/:identifier/users', function (req, res) {
-  //  app.post('/person/group/:identifier/add', function (req, res) {
-  //  app.post('/person/group/:identifier/remove', function (req, res) {
   //  app.get('/vocabulary/:vocab', function (req, res) {
   //  app.get('/vocabulary/:vocab/all', function (req, res) {
   //  app.get('/vocabulary/:vocab/select', function (req, res) {
@@ -130,116 +121,3 @@ object Application extends Controller with BaseXBridge {
   //  app.get('/snapshot', function (req, res) {
 }
 
-object BaseXConnection {
-  lazy val server = new BaseX(host = "localhost", port = 1984, eport = 2013, user = "admin", pass = "admin")
-
-  def withSession[T](block: ClientSession => T) = {
-    server.withSession("oscr") {
-      session =>
-        block(session)
-    }
-  }
-}
-
-trait BaseXBridge {
-
-
-  val database = "oscr"
-
-  def langDocument(lang: String) = {
-    s"/i18n/$lang.xml"
-  }
-
-  def langPath(lang: String): String = {
-    s"doc('$database${langDocument(lang)}')/Language"
-  }
-
-  def userCollection = {
-    s"collection('$database/people/users')/User"
-  }
-
-  def groupCollection =  {
-    s"collection('$database/people/groups')/Group"
-  }
-
-  def docCollection(schemaName: String) = {
-    s"collection('$database/documents/$schemaName')"
-  }
-
-
-  //  this.userDocument = function (identifier) {
-  //    return "/people/users/" + identifier + ".xml";
-  //  };
-  //
-  //  this.userPath = function (identifier) {
-  //    return "doc('" + this.database + this.userDocument(identifier) + "')/User";
-  //  };
-  //
-  //
-  //  this.groupDocument = function (identifier) {
-  //    return "/people/groups/" + identifier + ".xml";
-  //  };
-  //
-  //  this.groupPath = function (identifier) {
-  //    return "doc('" + this.database + this.groupDocument(identifier) + "')/Group";
-  //  };
-  //
-  //
-  //  this.schemaPath = function () {
-  //    return "doc('" + this.database + "/Schemas.xml')/Schemas";
-  //  };
-  //
-  //  this.vocabDocument = function (vocabName) {
-  //    return "/vocabulary/" + vocabName + ".xml";
-  //  };
-  //
-  //  this.vocabPath = function (vocabName) {
-  //    return "doc('" + this.database + this.vocabDocument(vocabName) + "')";
-  //  };
-  //
-  //  this.vocabExists = function (vocabName) {
-  //    return "db:exists('" + this.database + "','" + this.vocabDocument(vocabName) + "')";
-  //  };
-  //
-  //  this.vocabAdd = function (vocabName, xml) {
-  //    return "db:add('" + this.database + "', " + xml + ",'" + this.vocabDocument(vocabName) + "')";
-  //  };
-  //
-  //  this.docDocument = function (schemaName, identifier) {
-  //    if (!schemaName) throw new Error("No schema name!");
-  //    if (!identifier) throw new Error("No identifier!");
-  //    return "/documents/" + schemaName + "/" + identifier + ".xml";
-  //  };
-  //
-  //  this.docPath = function (schemaName, identifier) {
-  //    return "doc('" + this.database + this.docDocument(schemaName, identifier) + "')/Document";
-  //  };
-  //
-  //  this.logDocument = function () {
-  //    var now = new Date();
-  //    return "/log/" + now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + ".xml";
-  //  };
-  //
-  //  this.logPath = function () {
-  //    return "doc('" + this.database + this.logDocument() + "')";
-  //  };
-
-
-  def inXml(value: String) = {
-    value.replace("<", "&lt;").replace(">", "&gt;")
-  }
-
-  def quote(value: String) = {
-    value match {
-      case "" => "''"
-      case string =>
-        "'" + string.replace("'", "\'\'") + "'"
-    }
-  }
-
-  def execute(command: String, session: ClientSession) = session.execute(
-    s"<xquery><![CDATA[$command]]></xquery>"
-  )
-
-
-}
