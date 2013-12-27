@@ -3,23 +3,28 @@
 # ~~~~
 
 # Home page
-GET         /                                      controllers.Application.index
+GET         /                                              controllers.Application.index
 
-GET         /i18n/:lang                            controllers.Application.getLang(lang: String)
-POST        /i18n/:lang/label                      controllers.Application.setLangLabel(lang: String)
-POST        /i18n/:lang/element                    controllers.Application.setLangElement(lang: String)
-GET         /statistics                            controllers.Application.getStatistics
+GET         /i18n/:lang                                    controllers.Application.getLang(lang: String)
+POST        /i18n/:lang/label                              controllers.Application.setLangLabel(lang: String)
+POST        /i18n/:lang/element                            controllers.Application.setLangElement(lang: String)
+GET         /statistics                                    controllers.Application.getStatistics
 
-GET         /person/user/fetch/:identifier         controllers.Person.getUser(identifier: String)
-GET         /person/user/all                       controllers.Person.getAllUsers
-GET         /person/group/fetch/:identifier        controllers.Person.fetchGroup(identifier: String)
-GET         /person/group/select                   controllers.Person.selectGroup(q: String)
-GET         /person/group/all                      controllers.Person.selectAllGroups
-GET         /person/group/:identifier/users        controllers.Person.getUsersInGroup(identifier: String)
+GET         /person/user/fetch/:identifier                 controllers.Person.getUser(identifier: String)
+GET         /person/user/all                               controllers.Person.getAllUsers
+GET         /person/group/fetch/:identifier                controllers.Person.fetchGroup(identifier: String)
+GET         /person/group/select                           controllers.Person.selectGroup(q: String)
+GET         /person/group/all                              controllers.Person.selectAllGroups
+GET         /person/group/:identifier/users                controllers.Person.getUsersInGroup(identifier: String)
 
-GET         /document/schema/:schemaName           controllers.Document.getDocumentSchema(schemaName)
+GET         /document/schema/:schemaName                   controllers.Document.getDocumentSchema(schemaName)
+GET         /document/fetch/:schemaName/:identifier        controllers.Document.getDocument(schemaName, identifier)
+GET         /document/list/documents/:schemaName           controllers.Document.listDocuments(schemaName)
 
-GET         /assets/*file                          controllers.Assets.at(path="/public", file)
+#  app.get('/document/select/:schema', function (req, res) {
+#  app.post('/document/save', function (req, res) {
+
+GET         /assets/*file                                  controllers.Assets.at(path="/public", file)
 
 
 #  app.post('/authenticate', function (req, res) {
@@ -39,10 +44,6 @@ GET         /assets/*file                          controllers.Assets.at(path="/
 #  app.get('/vocabulary/:vocab/select', function (req, res) {
 #  app.get('/vocabulary/:vocab/fetch/:identifier', function (req, res) {
 #  app.post('/vocabulary/:vocab/add', function (req, res) {
-#  app.get('/document/fetch/:schema/:identifier', function (req, res) {
-#  app.get('/document/list/documents/:schema', function (req, res) {
-#  app.get('/document/select/:schema', function (req, res) {
-#  app.post('/document/save', function (req, res) {
 #  app.get('/media/fetch/:fileName', function (req, res) {
 #  app.get('/media/thumbnail/:fileName', function (req, res) {
 #  app.get('/log', function (req, res) {

@@ -76,6 +76,10 @@ trait BaseXBridge {
 
 	def schemaPath = s"doc('$database/Schemas.xml')/Schemas"
 
+  def docDocument(schemaName: String, identifier: String) = s"/documents/$schemaName/$identifier.xml"
+
+  def docPath(schemaName:String, identifier:String) = s"doc('$database${docDocument(schemaName, identifier)}')"
+
 	def inXml(value: String) = {
 		value.replace("<", "&lt;").replace(">", "&gt;")
 	}
