@@ -3,13 +3,14 @@
 # ~~~~
 
 # Home page
-GET         /                        controllers.Application.index
+GET         /                          controllers.Application.index
 
-GET         /i18n/:lang              controllers.Application.getLang(lang: String)
-POST        /i18n/:lang/label        controllers.Application.setLangLabel(lang: String)
-POST        /i18n/:lang/element      controllers.Application.setLangElement(lang: String)
+GET         /i18n/:lang                controllers.Application.getLang(lang: String)
+POST        /i18n/:lang/label          controllers.Application.setLangLabel(lang: String)
+POST        /i18n/:lang/element        controllers.Application.setLangElement(lang: String)
+GET         /statistics                controllers.Application.getStatistics
 
-GET         /assets/*file            controllers.Assets.at(path="/public", file)
+GET         /assets/*file              controllers.Assets.at(path="/public", file)
 
 
 #  app.post('/authenticate', function (req, res) {

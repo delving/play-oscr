@@ -4,35 +4,11 @@ import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
 
-object Application extends Controller {
-
-  def langDocument(lang: String) = {
-    s"/i18n/$lang.xml"
-  }
-
-  def langPath(lang: String): String = {
-    s"doc('oscr${langDocument(lang)}')/Language"
-  }
-
-  def inXml(value: String) = {
-    value.replace("<", "&lt;").replace(">", "&gt;")
-  }
-
-  def quote(value: String) = {
-    value match {
-      case "" => "''"
-      case string =>
-        "'" + string.replace("'", "\'\'") + "'"
-    }
-  }
+object Application extends Controller with BaseXBridge {
 
   def index = Action {
     Ok(views.html.index("OSCR says hello!"))
   }
-
-  def execute(command: String, session: ClientSession) = session.execute(
-    s"<xquery><![CDATA[$command]]></xquery>"
-  )
 
   def langResponse(lang: String, session: ClientSession) = session.findOneRaw(langPath(lang)) match {
     case Some(xml) => Ok(xml)
@@ -99,9 +75,33 @@ object Application extends Controller {
       }
   }
 
+  def getStatistics = Action {
+    BaseXConnection.withSession {
+      session =>
+        def count(collection:String) = execute(s"count($collection)", session)
+        val query =
+          <Statistics>
+            <People>
+              <Person>{count(userCollection)}</Person>
+              <Group>{count(groupCollection)}</Group>
+            </People>
+            <Documents>{
+              for (schema <- List("Photo", "Video", "InMemoriam", "Location")) yield
+              <Schema>
+                <Name>{schema}</Name>
+                <Count>{count(docCollection(schema))}</Count>
+              </Schema>
+              }</Documents>
+          </Statistics>
+        session.findOneRaw(query.toString()) match {
+          case Some(xml) => Ok(xml)
+          case None => NotFound
+        }
+    }
+  }
+
   //  app.post('/authenticate', function (req, res) {
   //  app.post('/i18n/:lang/save', function (req, res) {
-  //  app.get('/statistics', function (req, res) {
   //  app.get('/person/user/fetch/:identifier', function (req, res) {
   //  app.get('/person/user/select', function (req, res) {
   //  app.get('/person/user/all', function (req, res) {
@@ -139,4 +139,107 @@ object BaseXConnection {
         block(session)
     }
   }
+}
+
+trait BaseXBridge {
+
+
+  val database = "oscr"
+
+  def langDocument(lang: String) = {
+    s"/i18n/$lang.xml"
+  }
+
+  def langPath(lang: String): String = {
+    s"doc('$database${langDocument(lang)}')/Language"
+  }
+
+  def userCollection = {
+    s"collection('$database/people/users')/User"
+  }
+
+  def groupCollection =  {
+    s"collection('$database/people/groups')/Group"
+  }
+
+  def docCollection(schemaName: String) = {
+    s"collection('$database/documents/$schemaName')"
+  }
+
+
+  //  this.userDocument = function (identifier) {
+  //    return "/people/users/" + identifier + ".xml";
+  //  };
+  //
+  //  this.userPath = function (identifier) {
+  //    return "doc('" + this.database + this.userDocument(identifier) + "')/User";
+  //  };
+  //
+  //
+  //  this.groupDocument = function (identifier) {
+  //    return "/people/groups/" + identifier + ".xml";
+  //  };
+  //
+  //  this.groupPath = function (identifier) {
+  //    return "doc('" + this.database + this.groupDocument(identifier) + "')/Group";
+  //  };
+  //
+  //
+  //  this.schemaPath = function () {
+  //    return "doc('" + this.database + "/Schemas.xml')/Schemas";
+  //  };
+  //
+  //  this.vocabDocument = function (vocabName) {
+  //    return "/vocabulary/" + vocabName + ".xml";
+  //  };
+  //
+  //  this.vocabPath = function (vocabName) {
+  //    return "doc('" + this.database + this.vocabDocument(vocabName) + "')";
+  //  };
+  //
+  //  this.vocabExists = function (vocabName) {
+  //    return "db:exists('" + this.database + "','" + this.vocabDocument(vocabName) + "')";
+  //  };
+  //
+  //  this.vocabAdd = function (vocabName, xml) {
+  //    return "db:add('" + this.database + "', " + xml + ",'" + this.vocabDocument(vocabName) + "')";
+  //  };
+  //
+  //  this.docDocument = function (schemaName, identifier) {
+  //    if (!schemaName) throw new Error("No schema name!");
+  //    if (!identifier) throw new Error("No identifier!");
+  //    return "/documents/" + schemaName + "/" + identifier + ".xml";
+  //  };
+  //
+  //  this.docPath = function (schemaName, identifier) {
+  //    return "doc('" + this.database + this.docDocument(schemaName, identifier) + "')/Document";
+  //  };
+  //
+  //  this.logDocument = function () {
+  //    var now = new Date();
+  //    return "/log/" + now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + ".xml";
+  //  };
+  //
+  //  this.logPath = function () {
+  //    return "doc('" + this.database + this.logDocument() + "')";
+  //  };
+
+
+  def inXml(value: String) = {
+    value.replace("<", "&lt;").replace(">", "&gt;")
+  }
+
+  def quote(value: String) = {
+    value match {
+      case "" => "''"
+      case string =>
+        "'" + string.replace("'", "\'\'") + "'"
+    }
+  }
+
+  def execute(command: String, session: ClientSession) = session.execute(
+    s"<xquery><![CDATA[$command]]></xquery>"
+  )
+
+
 }
