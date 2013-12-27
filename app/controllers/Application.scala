@@ -46,7 +46,10 @@ object Application extends Controller with BaseXBridge {
 
   def setLangElement(lang: String) = Action(parse.json) {
     request =>
-      ((request.body \ "key").asOpt[String], (request.body \ "title").asOpt[String], (request.body \ "doc").asOpt[String]) match {
+      val keyOpt: Option[String] = (request.body \ "key").asOpt[String]
+      val titleOpt: Option[String] = (request.body \ "title").asOpt[String]
+      val docOpt: Option[String] = (request.body \ "doc").asOpt[String]
+      (keyOpt, titleOpt, docOpt) match {
         case (Some(key), Some(title), None) =>
           BaseXConnection.withSession {
             session =>
@@ -86,15 +89,15 @@ object Application extends Controller with BaseXBridge {
               <Person>{count(userCollection)}</Person>
               <Group>{count(groupCollection)}</Group>
             </People>
-            <Documents>{
-              for (schema <- List("Photo", "Video", "InMemoriam", "Location")) yield
+            <Documents>
+              {for (schema <- List("Photo", "Video", "InMemoriam", "Location")) yield
               <Schema>
                 <Name>{schema}</Name>
                 <Count>{count(docCollection(schema))}</Count>
-              </Schema>
-              }</Documents>
+              </Schema>}
+            </Documents>
           </Statistics>
-        session.findOneRaw(query.toString()) match {
+        session.findOne(query.toString()) match {
           case Some(xml) => Ok(xml)
           case None => NotFound
         }

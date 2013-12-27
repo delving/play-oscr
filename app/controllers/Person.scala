@@ -17,13 +17,22 @@ object Person extends Controller with BaseXBridge {
   //  app.post('/person/group/:identifier/add', function (req, res) {
   //  app.post('/person/group/:identifier/remove', function (req, res) {
 
-  def fetchPerson(identifier: String) = Action(
+  def getUser(identifier: String) = Action(
     BaseXConnection.withSession(
       session =>
         session.findOneRaw(userPath(identifier)) match {
           case Some(xml) => Ok(xml)
           case None => NotFound
         }
+    )
+  )
+  
+  def getAllUsers = Action(
+    BaseXConnection.withSession(
+      session => {
+        val xmlList = session.find(userCollection).toList
+        Ok(<Users>{ for (user <- xmlList) yield user }</Users>)
+      }
     )
   )
 }
