@@ -29,7 +29,7 @@ POST        /person/group/:identifier/remove'                 controllers.Person
 GET         /vocabulary/:schemaName                           controllers.Vocabulary.getVocabularySchema(schemaName)
 GET         /vocabulary/:schemaName/all                       controllers.Vocabulary.getVocabulary(schemaName)
 GET         /vocabulary/:schemaName/select                    controllers.Vocabulary.selectFromVocabulary(schemaName:String, q:String)
-GET         /vocabulary/:schemaName/fetch/:identifier'        controllers.Vocabulary.getVocabularyEntry(schemaName:String, identifier:String)
+GET         /vocabulary/:schemaName/fetch/:identifier         controllers.Vocabulary.getVocabularyEntry(schemaName:String, identifier:String)
 POST        /vocabulary/:schemaName/add                       controllers.Vocabulary.addVocabularyEntry(schemaName:String)
 
 GET         /document/schema/:schemaName                      controllers.Document.getDocumentSchema(schemaName)

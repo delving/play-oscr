@@ -16,7 +16,6 @@ object Vocabulary extends BaseXController {
         val entryElement = s"$schemaPath/Vocabulary/$schemaName"
         val entry = s"<Entry>{ $entryElement/text() }<Label/><Identifier/>{ $entryElement/* }</Entry>"
         val query = s"<$schemaName>$entry</$schemaName>"
-      Logger.info(query)
         findOneResult(query, session)
     }
   )
@@ -31,9 +30,23 @@ object Vocabulary extends BaseXController {
     )
   )
 
-  def getVocabularyEntry(schemaName: String, identifier: String) = play.mvc.Results.TODO
+  def getVocabularyEntry(schemaName: String, identifier: String) = Action{
+    BaseXConnection.withSession {
+      session =>
+        val query = s"${vocabPath(schemaName)}/Entries/Entry[Identifier=${quote(identifier)}]"
+        findOneResult(query, session)
+    }
+  }
 
-  def selectFromVocabulary(schemaName: String, q: String) = play.mvc.Results.TODO
+  def selectFromVocabulary(schemaName: String, q: String) = Action{
+    BaseXConnection.withSession(
+      session => {
+        val query = s"${vocabPath(schemaName)}/Entries/Entry[contains(lower-case(Label), lower-case(${quote(q)}))]"
+        val xmlList = session.find(query).toList
+        Ok(<Entries>{for (document <- xmlList) yield document}</Entries>)
+      }
+    )
+  }
 
   def addVocabularyEntry(schemaName: String) = play.mvc.Results.TODO
 }
