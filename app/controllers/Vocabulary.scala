@@ -5,6 +5,7 @@ import eu.delving.basex.client._
 import org.basex.server.ClientSession
 import storage.{BaseXController, BaseXConnection, BaseXBridge}
 import play.Logger
+import play.api.libs.json.JsValue
 
 object Vocabulary extends BaseXController {
 
@@ -48,6 +49,41 @@ object Vocabulary extends BaseXController {
     )
   }
 
-  def addVocabularyEntry(schemaName: String) = play.mvc.Results.TODO
+  def addVocabularyEntry(schemaName: String) = Action(parse.json) {
+    request =>
+      val entry: JsValue = request.body \ "Entry"
+      val identifierOpt = (entry \ "Identifier").asOpt[String]
+      val labelOpt = (entry \ "Label").asOpt[String]
+      val label = labelOpt.getOrElse("?")
+      // todo: they should be sending us the XML for the entry
+      BaseXConnection.withSession(
+        session =>
+          identifierOpt match {
+            case Some(identifier) =>
+              val entryPath = s"${vocabPath(schemaName)}/Entries/Entry[Identifier=${quote(identifier)}]"
+              val entryXml =
+                <Entry>
+                  <Identifier>{identifier}</Identifier>
+                  <Label>{label}</Label>
+                </Entry>
+              val update = s"replace node $entryPath with $entryXml"
+              execute(update, session)
+              Ok(entryXml)
+            case None =>
+              val identifier = generateId("VO")
+              val entryXml =
+                <Entry>
+                  <Identifier>{identifier}</Identifier>
+                  <Label>{label}</Label>
+                </Entry>
+              val entries = <Entries>{entryXml}</Entries>
+              val update =
+                s"if (${vocabExists(schemaName)}) then "+
+                s"insert node ($entryXml) into ${vocabPath(schemaName)}/Entries "+
+                s"else ${vocabAdd(schemaName, entries.toString())}"
+              execute(update, session)
+              Ok(entryXml)
+          }
+      )
+  }
 }
-
