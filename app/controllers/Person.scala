@@ -44,16 +44,6 @@ object Person extends BaseXController {
 		}
 	}
 
-	//  app.post('/person/group/save', function (req, res) {
-  def saveGroup() = play.mvc.Results.TODO
-//  def saveGroup() = Action(parse.json) {
-//    request =>
-//      val group = request.body
-//      group \ "SaveTime" = new Date().getTime
-//      group \ "Identifier" = (group \ "Identifier").asOpt[String] getOrElse ""
-//      NotFound
-//  }
-
   //  app.get('/person/group/:identifier/users', function (req, res) {
 	def getUsersInGroup(identifier: String) = Action {
 		BaseXConnection.withSession {
@@ -62,6 +52,15 @@ object Person extends BaseXController {
         findOneResult(query.toString(), session)
 		}
 	}
+
+  def saveGroup() = play.mvc.Results.TODO
+  //  def saveGroup() = Action(parse.json) {
+  //    request =>
+  //      val group = request.body
+  //      group \ "SaveTime" = new Date().getTime
+  //      group \ "Identifier" = (group \ "Identifier").asOpt[String] getOrElse ""
+  //      NotFound
+  //  }
 
   def selectUsers(q: String) = play.mvc.Results.TODO
 

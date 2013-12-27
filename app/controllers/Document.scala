@@ -10,7 +10,6 @@ object Document extends BaseXController {
 
   val MAX_RESULTS = 30
 
-  //  app.get('/document/select/:schema', function (req, res) {
   //  app.post('/document/save', function (req, res) {
 
   def getDocumentSchema(schemaName: String) = Action(
@@ -24,8 +23,9 @@ object Document extends BaseXController {
   def listDocuments(schemaName: String) = Action(
     BaseXConnection.withSession(
       session => {
-        val query = s"let $$all := for $$doc in ${docCollection(schemaName)}" +
-          " order by $doc/Header/Timestamp descending return $doc" +
+        val query =
+          s"let $$all := for $$doc in ${docCollection(schemaName)}" +
+          s" order by $$doc/Header/Timestamp descending return $$doc" +
           s" return subsequence($$all, 1, $MAX_RESULTS)"
         Logger.info(query)
         val xmlList = session.find(query).toList
@@ -34,5 +34,20 @@ object Document extends BaseXController {
     )
   )
 
+  def selectDocuments(schemaName: String, q: String) = Action {
+    BaseXConnection.withSession(
+      session => {
+        val query =
+          s"let $$all := for $$doc in ${docCollection(schemaName)}/Document" +
+          s" where $$doc/Body//*[text() contains text${quote(q + ".+")} using wildcards]" +
+          s" or $$doc/Body//*[text() contains text ${quote(q)} using stemming]" +
+          s" order by $$doc/Header/Timestamp descending return $$doc" +
+          s" return subsequence($$all, 1, $MAX_RESULTS)"
+        Logger.info(query)
+        val xmlList = session.find(query).toList
+        Ok(<Documents>{for (document <- xmlList) yield document}</Documents>)
+      }
+    )
+  }
 }
 
