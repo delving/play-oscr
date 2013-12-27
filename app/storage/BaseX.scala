@@ -35,60 +35,48 @@ trait BaseXBridge {
 
 	def userPath(identifier: String) = s"doc('$database${userDocument(identifier)}')/User"
 
-	def groupDocument(identifier: String) = s"/people/groups/$identifier.xml"
+  //  this.vocabDocument = function (vocabName) {
+  //    return "/vocabulary/" + vocabName + ".xml";
+  //  };
+  //
+  //  this.vocabPath = function (vocabName) {
+  //    return "doc('" + this.database + this.vocabDocument(vocabName) + "')";
+  //  };
+  //
+  //  this.vocabExists = function (vocabName) {
+  //    return "db:exists('" + this.database + "','" + this.vocabDocument(vocabName) + "')";
+  //  };
+  //
+  //  this.vocabAdd = function (vocabName, xml) {
+  //    return "db:add('" + this.database + "', " + xml + ",'" + this.vocabDocument(vocabName) + "')";
+  //  };
+  //
+  //  this.docDocument = function (schemaName, identifier) {
+  //    if (!schemaName) throw new Error("No schema name!");
+  //    if (!identifier) throw new Error("No identifier!");
+  //    return "/documents/" + schemaName + "/" + identifier + ".xml";
+  //  };
+  //
+  //  this.docPath = function (schemaName, identifier) {
+  //    return "doc('" + this.database + this.docDocument(schemaName, identifier) + "')/Document";
+  //  };
+  //
+  //  this.logDocument = function () {
+  //    var now = new Date();
+  //    return "/log/" + now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + ".xml";
+  //  };
+  //
+  //  this.logPath = function () {
+  //    return "doc('" + this.database + this.logDocument() + "')";
+  //  };
 
-	def groupPath(identifier: String) = s"doc('$database${groupDocument(identifier)}')/Group"
+  def schemaPath = s"doc('$database/Schemas.xml')/Schemas"
+
+  def groupDocument(identifier: String) = s"/people/groups/$identifier.xml"
+
+  def groupPath(identifier: String) = s"doc('$database${groupDocument(identifier)}')/Group"
 
 	def groupCollection(identifier: String) = s"collection('$database/people/groups')/Group"
-
-	//  this.groupDocument = function (identifier) {
-	//    return "/people/groups/" + identifier + ".xml";
-	//  };
-	//
-	//  this.groupPath = function (identifier) {
-	//    return "doc('" + this.database + this.groupDocument(identifier) + "')/Group";
-	//  };
-	//
-	//
-	//  this.schemaPath = function () {
-	//    return "doc('" + this.database + "/Schemas.xml')/Schemas";
-	//  };
-	//
-	//  this.vocabDocument = function (vocabName) {
-	//    return "/vocabulary/" + vocabName + ".xml";
-	//  };
-	//
-	//  this.vocabPath = function (vocabName) {
-	//    return "doc('" + this.database + this.vocabDocument(vocabName) + "')";
-	//  };
-	//
-	//  this.vocabExists = function (vocabName) {
-	//    return "db:exists('" + this.database + "','" + this.vocabDocument(vocabName) + "')";
-	//  };
-	//
-	//  this.vocabAdd = function (vocabName, xml) {
-	//    return "db:add('" + this.database + "', " + xml + ",'" + this.vocabDocument(vocabName) + "')";
-	//  };
-	//
-	//  this.docDocument = function (schemaName, identifier) {
-	//    if (!schemaName) throw new Error("No schema name!");
-	//    if (!identifier) throw new Error("No identifier!");
-	//    return "/documents/" + schemaName + "/" + identifier + ".xml";
-	//  };
-	//
-	//  this.docPath = function (schemaName, identifier) {
-	//    return "doc('" + this.database + this.docDocument(schemaName, identifier) + "')/Document";
-	//  };
-	//
-	//  this.logDocument = function () {
-	//    var now = new Date();
-	//    return "/log/" + now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + ".xml";
-	//  };
-	//
-	//  this.logPath = function () {
-	//    return "doc('" + this.database + this.logDocument() + "')";
-	//  };
-
 
 	def inXml(value: String) = {
 		value.replace("<", "&lt;").replace(">", "&gt;")

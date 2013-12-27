@@ -111,11 +111,6 @@ object Application extends Controller with BaseXBridge {
   //  app.get('/vocabulary/:vocab/select', function (req, res) {
   //  app.get('/vocabulary/:vocab/fetch/:identifier', function (req, res) {
   //  app.post('/vocabulary/:vocab/add', function (req, res) {
-  //  app.get('/document/schema/:schema', function (req, res) {
-  //  app.get('/document/fetch/:schema/:identifier', function (req, res) {
-  //  app.get('/document/list/documents/:schema', function (req, res) {
-  //  app.get('/document/select/:schema', function (req, res) {
-  //  app.post('/document/save', function (req, res) {
   //  app.get('/media/fetch/:fileName', function (req, res) {
   //  app.get('/media/thumbnail/:fileName', function (req, res) {
   //  app.get('/log', function (req, res) {
