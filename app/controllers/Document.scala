@@ -10,8 +10,6 @@ object Document extends BaseXController {
 
   val MAX_RESULTS = 30
 
-  //  app.post('/document/save', function (req, res) {
-
   def getDocumentSchema(schemaName: String) = Action(
     BaseXConnection.withSession(findOneResult(s"$schemaPath/Document/$schemaName", _))
   )
@@ -27,7 +25,6 @@ object Document extends BaseXController {
           s"let $$all := for $$doc in ${docCollection(schemaName)}" +
           s" order by $$doc/Header/Timestamp descending return $$doc" +
           s" return subsequence($$all, 1, $MAX_RESULTS)"
-        Logger.info(query)
         val xmlList = session.find(query).toList
         Ok(<Documents>{for (document <- xmlList) yield document}</Documents>)
       }
@@ -43,11 +40,62 @@ object Document extends BaseXController {
           s" or $$doc/Body//*[text() contains text ${quote(q)} using stemming]" +
           s" order by $$doc/Header/Timestamp descending return $$doc" +
           s" return subsequence($$all, 1, $MAX_RESULTS)"
-        Logger.info(query)
         val xmlList = session.find(query).toList
         Ok(<Documents>{for (document <- xmlList) yield document}</Documents>)
       }
     )
+  }
+
+  def saveDocument() = Action(parse.json) {
+    request =>
+//      P.saveDocument = function (envelope, receiver) {
+//        var s = this.storage;
+//        var IDENTIFIER = '#IDENTIFIER#';
+//        var TIMESTAMP = '#TIMESTAMP#';
+//        var time = new Date().getTime();
+//        var hdr = _.clone(envelope.header);
+//        var body = envelope.body;
+//
+//        function addDocument() {
+//          var xml = envelope.xml
+//            .replace(IDENTIFIER, hdr.Identifier) // header
+//            .replace(IDENTIFIER, hdr.Identifier) // maybe body
+//            .replace(TIMESTAMP, time); // header
+//          s.add('add document ' + hdr.Identifier,
+//          s.docDocument(hdr.SchemaName, hdr.Identifier),
+//          xml,
+//          receiver
+//          );
+//        }
+//
+//        hdr.TimeStamp = time;
+//        if (hdr.Identifier === IDENTIFIER) {
+//          if (envelope.header.SchemaName == 'MediaMetadata') {
+//            // expects fileName, mimeType
+//            log('save image');
+//            log(body);
+//            s.Media.saveMedia(body, function (fileName) {
+//              hdr.Identifier = fileName;
+//              addDocument();
+//            });
+//          }
+//          else {
+//            hdr.Identifier = util.generateDocumentId(hdr.SchemaName);
+//            addDocument();
+//          }
+//        }
+//        else {
+//          // todo: move the current one to the backup collection
+//          var stamped = envelope.xml.replace(TIMESTAMP, time);
+//          s.replace('replace document ' + hdr.Identifier,
+//          s.docDocument(hdr.SchemaName, hdr.Identifier),
+//          stamped,
+//          receiver
+//          );
+//        }
+//      };
+
+      NotImplemented
   }
 }
 

@@ -68,7 +68,9 @@ object Language extends BaseXController {
       }
   }
 
-  def saveLanguage(lang: String) = play.mvc.Results.TODO
+  def saveLanguage(lang: String) = Action {
+    NotImplemented
+  }
 
 }
 
