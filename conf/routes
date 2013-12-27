@@ -2,42 +2,41 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-GET         /                                              controllers.Application.index
+GET         /                                                 controllers.Application.index
+POST        /authenticate                                     controllers.Application.authenticate
+GET         /log                                              controllers.Application.getLog
+GET         /refreshSchemas                                   controllers.Application.refreshSchemas
+GET         /statistics                                       controllers.Application.getStatistics
+GET         /snapshot/:fileName                               controllers.Application.createSnapshot(fileName:String)
+GET         /snapshot                                         controllers.Application.createSnapshotNow
 
-GET         /i18n/:lang                                    controllers.Application.getLang(lang: String)
-POST        /i18n/:lang/label                              controllers.Application.setLangLabel(lang: String)
-POST        /i18n/:lang/element                            controllers.Application.setLangElement(lang: String)
-#  app.post('/i18n/:lang/save', function (req, res) {
-GET         /statistics                                    controllers.Application.getStatistics
+GET         /i18n/:lang                                       controllers.Language.getLang(lang: String)
+POST        /i18n/:lang/label                                 controllers.Language.setLangLabel(lang: String)
+POST        /i18n/:lang/element                               controllers.Language.setLangElement(lang: String)
+POST        /i18n/:lang/save                                  controllers.Language.saveLanguage(lang: String)
 
-GET         /person/user/fetch/:identifier                 controllers.Person.getUser(identifier: String)
-GET         /person/user/all                               controllers.Person.getAllUsers
-#  app.get('/person/user/select', function (req, res) {
-GET         /person/group/fetch/:identifier                controllers.Person.fetchGroup(identifier: String)
-GET         /person/group/select                           controllers.Person.selectGroup(q: String)
-GET         /person/group/all                              controllers.Person.selectAllGroups
-POST        /person/group/save                             controllers.Person.saveGroup
-GET         /person/group/:identifier/users                controllers.Person.getUsersInGroup(identifier: String)
+GET         /person/user/fetch/:identifier                    controllers.Person.getUser(identifier: String)
+GET         /person/user/all                                  controllers.Person.getAllUsers
+GET         /person/user/select                               controllers.Person.selectUsers(q:String)
+GET         /person/group/fetch/:identifier                   controllers.Person.fetchGroup(identifier: String)
+GET         /person/group/select                              controllers.Person.selectGroup(q: String)
+GET         /person/group/all                                 controllers.Person.selectAllGroups
+POST        /person/group/save                                controllers.Person.saveGroup
+GET         /person/group/:identifier/users                   controllers.Person.getUsersInGroup(identifier: String)
+POST        /person/group/:identifier/add                     controllers.Person.addGroup(identifier:String)
+POST        /person/group/:identifier/remove'                 controllers.Person.removeGroup(identifier:String)
 
-GET         /document/schema/:schemaName                   controllers.Document.getDocumentSchema(schemaName)
-GET         /document/fetch/:schemaName/:identifier        controllers.Document.getDocument(schemaName, identifier)
-GET         /document/list/documents/:schemaName           controllers.Document.listDocuments(schemaName)
+GET         /vocabulary/:schemaName                           controllers.Vocabulary.getVocabularySchema(schemaName)
+GET         /vocabulary/:schemaName/all                       controllers.Vocabulary.getVocabulary(schemaName)
+GET         /vocabulary/:schemaName/select                    controllers.Vocabulary.selectFromVocabulary(schemaName:String, q:String)
+GET         /vocabulary/:schemaName/fetch/:identifier'        controllers.Vocabulary.getVocabularyEntry(schemaName:String, identifier:String)
+POST        /vocabulary/:schemaName/add                       controllers.Vocabulary.addVocabularyEntry(schemaName:String)
 
-GET         /assets/*file                                  controllers.Assets.at(path="/public", file)
+GET         /document/schema/:schemaName                      controllers.Document.getDocumentSchema(schemaName)
+GET         /document/fetch/:schemaName/:identifier           controllers.Document.getDocument(schemaName, identifier)
+GET         /document/list/documents/:schemaName              controllers.Document.listDocuments(schemaName)
 
-#  app.post('/authenticate', function (req, res) {
-#  app.post('/person/group/:identifier/add', function (req, res) {
-#  app.post('/person/group/:identifier/remove', function (req, res) {
-#  app.get('/vocabulary/:vocab', function (req, res) {
-#  app.get('/vocabulary/:vocab/all', function (req, res) {
-#  app.get('/vocabulary/:vocab/select', function (req, res) {
-#  app.get('/vocabulary/:vocab/fetch/:identifier', function (req, res) {
-#  app.post('/vocabulary/:vocab/add', function (req, res) {
-#  app.get('/media/fetch/:fileName', function (req, res) {
-#  app.get('/media/thumbnail/:fileName', function (req, res) {
-#  app.get('/log', function (req, res) {
-#  app.get('/refreshSchemas', function (req, res) {
-#  app.get('/snapshot/:fileName', function (req, res) {
-#  app.get('/snapshot', function (req, res) {
+GET         /media/fetch/:fileName                            controllers.Media.getFile(fileName:String)
+GET         /media/thumbnail/:fileName                        controllers.Media.getThumbnail(fileName:String)
 
+GET         /assets/*file                                     controllers.Assets.at(path="/public", file)

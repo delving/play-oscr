@@ -63,5 +63,10 @@ object Person extends BaseXController {
 		}
 	}
 
+  def selectUsers(q: String) = play.mvc.Results.TODO
+
+  def addGroup(identifier: String) = play.mvc.Results.TODO
+
+  def removeGroup(identifier: String) = play.mvc.Results.TODO
 }
 

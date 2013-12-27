@@ -2,74 +2,11 @@ package controllers
 
 import play.api.mvc._
 import eu.delving.basex.client._
-import org.basex.server.ClientSession
-import storage.{BaseXController, BaseXConnection, BaseXBridge}
+import storage.{BaseXController, BaseXConnection}
 
 object Application extends BaseXController {
 
   def index = Action(Ok(views.html.index("OSCR says hello!")))
-
-  def langResponse(lang: String, session: ClientSession) = findOneResult(langPath(lang), session)
-
-  def getLang(lang: String) = Action(
-    BaseXConnection.withSession(langResponse(lang, _))
-  )
-
-  def setLangLabel(lang: String) = Action(parse.json) {
-    request =>
-      val keyOpt = (request.body \ "key").asOpt[String]
-      val labelOpt = (request.body \ "label").asOpt[String]
-      (keyOpt, labelOpt) match {
-        case (Some(key), Some(label)) =>
-          BaseXConnection.withSession {
-            session =>
-              val labelPath = langPath(lang) + "/label"
-              val keyPath = labelPath + "/" + key
-              val command = s"if (exists($keyPath))" +
-                s" then replace value of node $keyPath with ${quote(label)}" +
-                s" else insert node <$key>${inXml(label)}</$key> into $labelPath"
-              execute(command, session)
-              langResponse(lang, session)
-          }
-        case _ =>
-          BadRequest("Missing key or label")
-      }
-  }
-
-  def setLangElement(lang: String) = Action(parse.json) {
-    request =>
-      val keyOpt: Option[String] = (request.body \ "key").asOpt[String]
-      val titleOpt: Option[String] = (request.body \ "title").asOpt[String]
-      val docOpt: Option[String] = (request.body \ "doc").asOpt[String]
-      (keyOpt, titleOpt, docOpt) match {
-        case (Some(key), Some(title), None) =>
-          BaseXConnection.withSession {
-            session =>
-              val elementPath = langPath(lang) + "/element"
-              val keyPath = elementPath + "/" + key
-              val entryPath = keyPath + "/title"
-              val command = s"if (exists($keyPath))" +
-                s"then replace value of node $entryPath with ${quote(title)}" +
-                s"else insert node <$key><title>${inXml(title)}</title><doc>?</doc></$key> into $elementPath"
-              execute(command, session)
-              langResponse(lang, session)
-          }
-        case (Some(key), None, Some(doc)) =>
-          BaseXConnection.withSession {
-            session =>
-              val elementPath = langPath(lang) + "/element"
-              val keyPath = elementPath + "/" + key
-              val entryPath = keyPath + "/doc"
-              val command = s"if (exists($keyPath))" +
-                s"then replace value of node $entryPath with ${quote(doc)}" +
-                s"else insert node <$key><title>?</title><doc>${inXml(doc)}</doc></$key> into $elementPath"
-              execute(command, session)
-              langResponse(lang, session)
-          }
-        case _ =>
-          BadRequest("Missing key or value")
-      }
-  }
 
   def getStatistics = Action {
     BaseXConnection.withSession {
@@ -96,18 +33,97 @@ object Application extends BaseXController {
     }
   }
 
-  //  app.post('/authenticate', function (req, res) {
-  //  app.post('/i18n/:lang/save', function (req, res) {
-  //  app.get('/vocabulary/:vocab', function (req, res) {
-  //  app.get('/vocabulary/:vocab/all', function (req, res) {
-  //  app.get('/vocabulary/:vocab/select', function (req, res) {
-  //  app.get('/vocabulary/:vocab/fetch/:identifier', function (req, res) {
-  //  app.post('/vocabulary/:vocab/add', function (req, res) {
-  //  app.get('/media/fetch/:fileName', function (req, res) {
-  //  app.get('/media/thumbnail/:fileName', function (req, res) {
-  //  app.get('/log', function (req, res) {
-  //  app.get('/refreshSchemas', function (req, res) {
-  //  app.get('/snapshot/:fileName', function (req, res) {
-  //  app.get('/snapshot', function (req, res) {
+  def authenticate() = play.mvc.Results.TODO
+
+  def getLog() = play.mvc.Results.TODO
+
+  def refreshSchemas() = play.mvc.Results.TODO
+
+  def createSnapshot(fileName: String) = {
+//    this.snapshotCreate = function (receiver) {
+//      var snapshotDir = this.snapshotName();
+//      var exportPath = this.directories.snapshot + '/' + snapshotDir;
+//      var zipFile = exportPath + '.zip';
+//      this.session.execute('export ' + exportPath, function () {
+//        var output = fs.createWriteStream(zipFile);
+//        var archive = archiver('zip');
+//
+//        archive.on('error', function (err) {
+//          throw err;
+//        });
+//        output.on('close', function () {
+//          receiver(zipFile);
+//        });
+//
+//        archive.pipe(output);
+//
+//        function rmdir(dir) {
+//          var list = fs.readdirSync(dir);
+//          _.each(list, function (entry) {
+//            if (entry[0] != '.') {
+//              var fileName = path.join(dir, entry);
+//              var stat = fs.statSync(fileName);
+//              if (stat.isDirectory()) {
+//                rmdir(fileName);
+//              }
+//              else {
+//                fs.unlinkSync(fileName);
+//              }
+//            }
+//          });
+//          fs.rmdirSync(dir);
+//        }
+//
+//        function appendToArchive(dir, zipPath) {
+//          var list = fs.readdirSync(dir);
+//          _.each(list, function (entry) {
+//            if (entry[0] != '.') {
+//              var fileName = path.join(dir, entry);
+//              var stat = fs.statSync(fileName);
+//              var zipFileName = zipPath + '/' + entry;
+//              if (stat.isDirectory()) {
+//                appendToArchive(fileName, zipFileName);
+//              }
+//              else {
+//                archive.append(fs.createReadStream(fileName), { name: zipFileName });
+//              }
+//            }
+//          });
+//        }
+//
+//        appendToArchive(exportPath, snapshotDir);
+//        rmdir(exportPath);
+//
+//        archive.finalize(function (err, bytes) {
+//          if (err) {
+//            throw err;
+//          }
+//          console.log(zipFile + ': ' + bytes + ' total bytes');
+//        });
+//
+//      })
+//    };
+//  }
+//    app.get('/snapshot/:fileName', function (req, res) {
+//      storage.snapshotCreate(function (localFile) {
+//        console.log("sending " + localFile);
+//        res.sendfile(localFile);
+//      });
+//    });
+    play.mvc.Results.TODO
+  }
+
+  def createSnapshotNow() = {
+//    this.snapshotName = function() {
+//      var now = new Date();
+//      var dateString = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate() +
+//        '-' + now.getHours() + '-' + now.getMinutes();
+//      return 'OSCR-Snapshot-' + dateString;
+//    };
+//    app.get('/snapshot', function (req, res) {
+//      res.redirect('/snapshot/'+storage.snapshotName());
+//    });
+    play.mvc.Results.TODO
+  }
 }
 
