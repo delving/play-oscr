@@ -10,18 +10,27 @@ object Person extends Controller with BaseXBridge {
 	//  app.post('/person/group/:identifier/add', function (req, res) {
 	//  app.post('/person/group/:identifier/remove', function (req, res) {
 
+	def resultForQuery(query: String, session: ClientSession): Result = {
+		session.findOne(query) match {
+			case Some(xml) => Ok(xml)
+			case None => NotFound
+		}
+	}
 
 	//  app.get('/person/user/select', function (req, res) {
 	def getUser(identifier: String) = Action(
 		BaseXConnection.withSession(
-			session =>
-				session.findOne(userPath(identifier)) match {
-					case Some(xml) => Ok(xml)
-					case None => NotFound
-				}
+			session => resultForQuery(userPath(identifier), session)
 		)
 	)
 
+
+	//  app.get('/person/group/fetch/:identifier', function (req, res) {
+	def fetchGroup(identifier: String) = Action {
+		BaseXConnection.withSession {
+			session => resultForQuery(groupPath(identifier), session)
+		}
+	}
 
 	//  app.get('/person/user/all', function (req, res) {
 	def getAllUsers = Action(
@@ -37,17 +46,6 @@ object Person extends Controller with BaseXBridge {
 		)
 	)
 
-	//  app.get('/person/group/fetch/:identifier', function (req, res) {
-	def fetchGroup(identifier: String) = Action {
-		BaseXConnection.withSession {
-			session =>
-			  session.findOne(groupPath(identifier)) match {
-				  case Some(xml) => Ok(xml)
-				  case None => NotFound
-			  }
-		}
-	}
-
 	//  app.get('/person/group/select', function (req, res) {
 	def selectGroup(q: String) = Action {
 		BaseXConnection.withSession {
@@ -57,10 +55,7 @@ object Person extends Controller with BaseXBridge {
 						{{ {groupCollection}[contains(lower-case(Name), lower-case({quote(q.toLowerCase)}))] }}
 					</Groups>
 
-				session.findOne(query.toString()) match {
-					case Some(xml) => Ok(xml)
-					case None => NotFound
-				}
+				resultForQuery(query.toString(), session)
 		}
 	}
 
@@ -73,17 +68,14 @@ object Person extends Controller with BaseXBridge {
 						{{ {groupCollection} }}
 					</Groups>
 
-				session.findOne(query.toString()) match {
-					case Some(xml) => Ok(xml)
-					case None => NotFound
-				}
+				resultForQuery(query.toString(), session)
 		}
 	}
 
 	//  app.post('/person/group/save', function (req, res) {
 
-	//  app.get('/person/group/:identifier/users', function (req, res) {
 
+	//  app.get('/person/group/:identifier/users', function (req, res) {
 	def getUsersInGroup(identifier: String) = Action {
 		BaseXConnection.withSession {
 			session =>
@@ -92,10 +84,7 @@ object Person extends Controller with BaseXBridge {
 						{{ {userCollection}[Memberships/Membership/GroupIdentifier={quote(identifier)}] }}
 					</Users>
 
-				session.findOne(query.toString()) match {
-					case Some(xml) => Ok(xml)
-					case None => NotFound
-				}
+				resultForQuery(query.toString(), session)
 		}
 	}
 }

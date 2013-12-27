@@ -17,9 +17,9 @@ GET         /person/group/select                   controllers.Person.selectGrou
 GET         /person/group/all                      controllers.Person.selectAllGroups
 GET         /person/group/:identifier/users        controllers.Person.getUsersInGroup(identifier: String)
 
-GET         /document/schema/:schemaName          controllers.Document.getDocumentSchema(schemaName)
+GET         /document/schema/:schemaName           controllers.Document.getDocumentSchema(schemaName)
 
-GET         /assets/*file                         controllers.Assets.at(path="/public", file)
+GET         /assets/*file                          controllers.Assets.at(path="/public", file)
 
 
 #  app.post('/authenticate', function (req, res) {
