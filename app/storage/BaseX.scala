@@ -50,6 +50,14 @@ trait BaseXBridge {
 
 	def groupPath(identifier: String) = s"doc('$database${groupDocument(identifier)}')/Group"
 
+  def generateId(prefix: String) = {
+    val millisSince2013 = new Date().getTime - new Date(2013, 1, 1).getTime
+    val millisString = java.lang.Long.toString(millisSince2013, 36)
+    val randomNumber = Math.floor(Math.random() * 36 * 36 * 36).toLong
+    val randomString: String = java.lang.Long.toString(randomNumber, 36)
+    val padded: String = randomString.reverse.padTo(3, "0").mkString.reverse
+    s"OSCR-$prefix-$millisString-$padded"
+  }
   def vocabDocument(vocabName: String) = s"/vocabulary/$vocabName.xml"
 
   def vocabPath(vocabName:String) = s"doc('$database${vocabDocument(vocabName)}')"
@@ -84,11 +92,5 @@ trait BaseXBridge {
 		s"<xquery><![CDATA[$command]]></xquery>"
 	)
 
-  def generateId(prefix: String) = {
-    val millisSince2013 = (new Date().getTime - new Date(2013, 1, 1).getTime).toLong
-    val randomNumber = Math.floor(Math.random() * 36 * 36 * 36).toLong
-    val randomString: String = java.lang.Long.toString(randomNumber, 36)
-    val padded: String = randomString.reverse.padTo(3, "0").toString().reverse
-    s"OSCR-$prefix-${java.lang.Long.toString(millisSince2013, 36)}-$padded"
-  }
+
 }
