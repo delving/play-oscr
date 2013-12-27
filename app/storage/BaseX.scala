@@ -51,7 +51,8 @@ trait BaseXBridge {
 	def groupPath(identifier: String) = s"doc('$database${groupDocument(identifier)}')/Group"
 
   def generateId(prefix: String) = {
-    val millisSince2013 = new Date().getTime - new Date(2013, 1, 1).getTime
+    val millis2013 = 43 * 365 * 24 * 60 * 60 * 1000
+    val millisSince2013 = new Date().getTime - millis2013
     val millisString = java.lang.Long.toString(millisSince2013, 36)
     val randomNumber = Math.floor(Math.random() * 36 * 36 * 36).toLong
     val randomString: String = java.lang.Long.toString(randomNumber, 36)
