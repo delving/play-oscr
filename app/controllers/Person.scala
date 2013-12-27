@@ -7,9 +7,6 @@ import storage.{BaseXConnection, BaseXBridge}
 
 object Person extends Controller with BaseXBridge {
 
-	//  app.get('/person/group/all', function (req, res) {
-	//  app.post('/person/group/save', function (req, res) {
-	//  app.get('/person/group/:identifier/users', function (req, res) {
 	//  app.post('/person/group/:identifier/add', function (req, res) {
 	//  app.post('/person/group/:identifier/remove', function (req, res) {
 
@@ -67,5 +64,39 @@ object Person extends Controller with BaseXBridge {
 		}
 	}
 
+	//  app.get('/person/group/all', function (req, res) {
+	def selectAllGroups = Action {
+		BaseXConnection.withSession {
+			session =>
+				val query =
+					<Groups>
+						{{ {groupCollection} }}
+					</Groups>
+
+				session.findOne(query.toString()) match {
+					case Some(xml) => Ok(xml)
+					case None => NotFound
+				}
+		}
+	}
+
+	//  app.post('/person/group/save', function (req, res) {
+
+	//  app.get('/person/group/:identifier/users', function (req, res) {
+
+	def getUsersInGroup(identifier: String) = Action {
+		BaseXConnection.withSession {
+			session =>
+				val query =
+					<Users>
+						{{ {userCollection}[Memberships/Membership/GroupIdentifier={quote(identifier)}] }}
+					</Users>
+
+				session.findOne(query.toString()) match {
+					case Some(xml) => Ok(xml)
+					case None => NotFound
+				}
+		}
+	}
 }
 

@@ -14,6 +14,8 @@ GET         /person/user/fetch/:identifier         controllers.Person.getUser(id
 GET         /person/user/all                       controllers.Person.getAllUsers
 GET         /person/group/fetch/:identifier        controllers.Person.fetchGroup(identifier: String)
 GET         /person/group/select                   controllers.Person.selectGroup(q: String)
+GET         /person/group/all                      controllers.Person.selectAllGroups
+GET         /person/group/:identifier/users        controllers.Person.getUsersInGroup(identifier: String)
 
 GET         /document/schema/:schemaName          controllers.Document.getDocumentSchema(schemaName)
 
