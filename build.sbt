@@ -6,4 +6,8 @@ resolvers += "Delving Releases Repository" at "http://nexus.delving.org/nexus/co
 
 libraryDependencies += "eu.delving" % "basex-scala-client_2.10" % "0.6.1"
 
+libraryDependencies += "commons-io" % "commons-io" % "2.1"
+
+//libraryDependencies += "eu.delving" % "definitions" % "1.0"
+
 play.Project.playScalaSettings

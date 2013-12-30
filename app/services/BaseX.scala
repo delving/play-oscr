@@ -1,4 +1,4 @@
-package storage
+package services
 
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
@@ -59,6 +59,7 @@ trait BaseXBridge {
     val padded: String = randomString.reverse.padTo(3, "0").mkString.reverse
     s"OSCR-$prefix-$millisString-$padded"
   }
+
   def vocabDocument(vocabName: String) = s"/vocabulary/$vocabName.xml"
 
   def vocabPath(vocabName:String) = s"doc('$database${vocabDocument(vocabName)}')"

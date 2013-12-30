@@ -1,6 +1,6 @@
 package controllers
 
-import storage.BaseXController
+import services.BaseXController
 import play.api.mvc.Action
 
 object Media extends BaseXController {

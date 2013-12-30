@@ -2,7 +2,7 @@ package controllers
 
 import play.api.mvc._
 import eu.delving.basex.client._
-import storage.{BaseXController, BaseXConnection}
+import services.{BaseXController, BaseXConnection}
 import java.util.Date
 
 object Person extends BaseXController {
@@ -29,7 +29,7 @@ object Person extends BaseXController {
 
   def selectUsers(q: String) = Action {
 //    P.getUsers = function (search, receiver) {
-//      var s = this.storage;
+//      var s = this.services;
 //      s.query('get users ' + search,
 //      [
 //      '<Users>',
@@ -76,7 +76,7 @@ object Person extends BaseXController {
   def saveGroup = Action(parse.json) {
     request =>
 //      P.saveGroup = function (group, receiver) {
-//        var s = this.storage;
+//        var s = this.services;
 //        group.SaveTime = new Date().getTime();
 //        var existing = group.Identifier;
 //        if (!existing) {
@@ -117,7 +117,7 @@ object Person extends BaseXController {
   def addUserToGroup(identifier: String) = Action(parse.json) {
     request =>
 //      P.addUserToGroup = function (userIdentifier, role, groupIdentifier, receiver) {
-//        var s = this.storage;
+//        var s = this.services;
 //        var addition = userIdentifier + ' ' + role + ' ' + groupIdentifier;
 //        s.update('add user to group ' + addition,
 //        [
@@ -149,7 +149,7 @@ object Person extends BaseXController {
   def removeUserFromGroup(identifier: String) = Action(parse.json) {
     request =>
 //      P.removeUserFromGroup = function (userIdentifier, role, groupIdentifier, receiver) {
-//        var s = this.storage;
+//        var s = this.services;
 //        var addition = userIdentifier + ' ' + role + ' ' + groupIdentifier;
 //        s.update('remove user from group ' + addition,
 //        'delete node ' + s.userPath(userIdentifier) + '/Memberships/Membership[GroupIdentifier=' + util.quote(groupIdentifier) + ']',

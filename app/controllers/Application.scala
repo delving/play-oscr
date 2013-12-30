@@ -1,8 +1,16 @@
 package controllers
 
 import play.api.mvc._
+import play.api.libs.concurrent.Execution.Implicits._
 import eu.delving.basex.client._
-import storage.{BaseXController, BaseXConnection}
+import services.{MissingLibs, BaseXController, BaseXConnection}
+import play.api.libs.Crypto
+import play.api.libs.ws.{Response, WS}
+import play.mvc.Http
+import play.api.libs.ws.WS.WSRequestHolder
+import play.api.libs.json.JsValue
+import play.Logger
+import scala.concurrent.Future
 
 object Application extends BaseXController {
 
@@ -32,10 +40,73 @@ object Application extends BaseXController {
         }
     }
   }
+  
+  def commonsRequest(path: String): Future[Response] = {
+    val url: String = s"https://commons.delving.eu$path"
+    Logger.info("request:" + url)
+    WS.url(url)
+      .withQueryString(
+        ("apiToken", "6f941a84-cbed-4140-b0c4-2c6d88a581dd"),
+        ("apiOrgId", "delving"),
+        ("apiNode", "playground") // todo: change to OSCR
+      )
+      .get()
+  }
 
-  def authenticate() = Action(parse.json) {
+  def authenticate() = Action.async(parse.urlFormEncoded) {
     request =>
-// LOOK IN CULTUREHUB
+      var username = request.body("username").head
+      var password = request.body("password").head
+      val hashedPassword = MissingLibs.passwordHash(password, MissingLibs.HashType.SHA512)
+      val hash = Crypto.sign(hashedPassword, username.getBytes("utf-8"))
+      commonsRequest(s"/user/authenticate/$hash").map {
+        authResponse =>
+          authResponse.status match {
+            case Http.Status.OK =>
+              Logger.info("received ok from auth request")
+//              val profileFuture: Future[Response] = commonsRequest(s"/user/profile/$username")
+//              profileFuture.map {
+//                profileResponse =>
+//                  profileResponse.status match {
+//                    case Http.Status.OK =>
+//                      Logger.info("got OK response for profile")
+//                      Logger.info(profileResponse.json.toString())
+//                      Ok(profileResponse.json.toString())
+//                    case _ =>
+//                      Logger.info("no OK response for profile")
+//                      Ok("Shit")
+//                  }
+//              }
+              Ok("Looks good")
+            case _ =>
+//              Unauthorized("Didn't get the right response for authenticate")
+              Ok("Crap")
+          }
+      }
+
+//      get("/user/authenticate/" + URLEncoder.encode(hash, "utf-8")).map {
+//        response => response.status == OK
+//      }.getOrElse(false)
+//      function commonsQueryString() {
+//        var API_QUERY_PARAMS = {
+//          "apiToken": "6f941a84-cbed-4140-b0c4-2c6d88a581dd",
+//          "apiOrgId": "delving",
+//          "apiNode": "playground"
+//        };
+//        var queryParams = [];
+//        for (var key in API_QUERY_PARAMS) {
+//          queryParams.push(key + '=' + API_QUERY_PARAMS[key]);
+//        }
+//        return queryParams.join('&');
+//      }
+//      function commonsRequest(path) {
+//        return {
+//          method: "GET",
+//          host: 'commons.delving.eu',
+//          port: 443,
+//          path: path + '?' + commonsQueryString()
+//        }
+//      }
 //   app.post('/authenticate', function (req, res) {
 //      var username = req.body.username;
 //      var password = req.body.password;
@@ -56,10 +127,10 @@ object Application extends BaseXController {
 //              var profile = JSON.parse(data);
 //              profile.username = username;
 //              req.session.profile = profile;
-//              storage.Person.getOrCreateUser(profile, function (xml) {
+//              services.Person.getOrCreateUser(profile, function (xml) {
 //                req.session.Identifier = util.getFromXml(xml, 'Identifier');
 //                res.xml(xml);
-//                storage.Log.add(req, {
+//                services.Log.add(req, {
 //                  Op: "Authenticate"
 //                });
 //              });
@@ -73,7 +144,7 @@ object Application extends BaseXController {
 //      }
 //      ).end();
 //    });
-      NotImplemented
+//      NotImplemented
   }
 
   def getLog = Action(
@@ -166,7 +237,7 @@ object Application extends BaseXController {
 //    };
 //  }
 //    app.get('/snapshot/:fileName', function (req, res) {
-//      storage.snapshotCreate(function (localFile) {
+//      services.snapshotCreate(function (localFile) {
 //        console.log("sending " + localFile);
 //        res.sendfile(localFile);
 //      });
@@ -182,7 +253,7 @@ object Application extends BaseXController {
 //      return 'OSCR-Snapshot-' + dateString;
 //    };
 //    app.get('/snapshot', function (req, res) {
-//      res.redirect('/snapshot/'+storage.snapshotName());
+//      res.redirect('/snapshot/'+services.snapshotName());
 //    });
     NotImplemented
   }

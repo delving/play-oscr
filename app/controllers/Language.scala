@@ -1,6 +1,6 @@
 package controllers
 
-import storage.{BaseXConnection, BaseXController}
+import services.{BaseXConnection, BaseXController}
 import org.basex.server.ClientSession
 import play.api.mvc.Action
 

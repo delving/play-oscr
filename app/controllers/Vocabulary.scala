@@ -3,7 +3,7 @@ package controllers
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
-import storage.{BaseXController, BaseXConnection, BaseXBridge}
+import services.{BaseXController, BaseXConnection, BaseXBridge}
 import play.Logger
 import play.api.libs.json.JsValue
 

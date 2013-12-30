@@ -3,7 +3,7 @@ package controllers
 import play.api.mvc._
 import eu.delving.basex.client._
 import org.basex.server.ClientSession
-import storage.{BaseXController, BaseXConnection, BaseXBridge}
+import services.{BaseXController, BaseXConnection, BaseXBridge}
 import play.Logger
 
 object Document extends BaseXController {
@@ -49,7 +49,7 @@ object Document extends BaseXController {
   def saveDocument() = Action(parse.json) {
     request =>
 //      P.saveDocument = function (envelope, receiver) {
-//        var s = this.storage;
+//        var s = this.services;
 //        var IDENTIFIER = '#IDENTIFIER#';
 //        var TIMESTAMP = '#TIMESTAMP#';
 //        var time = new Date().getTime();
