@@ -7,10 +7,9 @@ import services.{MissingLibs, BaseXController, BaseXConnection}
 import play.api.libs.Crypto
 import play.api.libs.ws.{Response, WS}
 import play.mvc.Http
-import play.api.libs.ws.WS.WSRequestHolder
-import play.api.libs.json.JsValue
 import play.Logger
 import scala.concurrent.Future
+import scala.util.Success
 
 object Application extends BaseXController {
 
@@ -59,92 +58,16 @@ object Application extends BaseXController {
       var password = request.body("password").head
       val hashedPassword = MissingLibs.passwordHash(password, MissingLibs.HashType.SHA512)
       val hash = Crypto.sign(hashedPassword, username.getBytes("utf-8"))
-      commonsRequest(s"/user/authenticate/$hash").map {
-        authResponse =>
-          authResponse.status match {
+
+      commonsRequest(s"/user/authenticate/$hash").flatMap {
+        response =>
+          response.status match {
             case Http.Status.OK =>
-              Logger.info("received ok from auth request")
-//              val profileFuture: Future[Response] = commonsRequest(s"/user/profile/$username")
-//              profileFuture.map {
-//                profileResponse =>
-//                  profileResponse.status match {
-//                    case Http.Status.OK =>
-//                      Logger.info("got OK response for profile")
-//                      Logger.info(profileResponse.json.toString())
-//                      Ok(profileResponse.json.toString())
-//                    case _ =>
-//                      Logger.info("no OK response for profile")
-//                      Ok("Shit")
-//                  }
-//              }
-              Ok("Looks good")
+              commonsRequest(s"/user/profile/$username").map(profileResponse => Ok(profileResponse.body))
             case _ =>
-//              Unauthorized("Didn't get the right response for authenticate")
-              Ok("Crap")
+              Future(Unauthorized("Username password didn't work, dude"))
           }
       }
-
-//      get("/user/authenticate/" + URLEncoder.encode(hash, "utf-8")).map {
-//        response => response.status == OK
-//      }.getOrElse(false)
-//      function commonsQueryString() {
-//        var API_QUERY_PARAMS = {
-//          "apiToken": "6f941a84-cbed-4140-b0c4-2c6d88a581dd",
-//          "apiOrgId": "delving",
-//          "apiNode": "playground"
-//        };
-//        var queryParams = [];
-//        for (var key in API_QUERY_PARAMS) {
-//          queryParams.push(key + '=' + API_QUERY_PARAMS[key]);
-//        }
-//        return queryParams.join('&');
-//      }
-//      function commonsRequest(path) {
-//        return {
-//          method: "GET",
-//          host: 'commons.delving.eu',
-//          port: 443,
-//          path: path + '?' + commonsQueryString()
-//        }
-//      }
-//   app.post('/authenticate', function (req, res) {
-//      var username = req.body.username;
-//      var password = req.body.password;
-//      var sha = crypto.createHash('sha512');
-//      var hashedPassword = sha.update(new Buffer(password, 'utf-8')).digest('base64');
-//      var hmac = crypto.createHmac('sha1', username);
-//      var hash = hmac.update(hashedPassword).digest('hex');
-//      res.setHeader('Content-Type', 'text/xml');
-//      https.request(
-//        commonsRequest('/user/authenticate/' + hash),
-//      function (authResponse) {
-//        if (authResponse.statusCode == 200) {
-//          https.request(
-//            commonsRequest('/user/profile/' + username),
-//          function (profileResponse) {
-//            var data;
-//            profileResponse.on('data', function (data) {
-//              var profile = JSON.parse(data);
-//              profile.username = username;
-//              req.session.profile = profile;
-//              services.Person.getOrCreateUser(profile, function (xml) {
-//                req.session.Identifier = util.getFromXml(xml, 'Identifier');
-//                res.xml(xml);
-//                services.Log.add(req, {
-//                  Op: "Authenticate"
-//                });
-//              });
-//            });
-//          }
-//          ).end();
-//        }
-//        else {
-//          res.send("<Error>Failed to authenticate</Error>");
-//        }
-//      }
-//      ).end();
-//    });
-//      NotImplemented
   }
 
   def getLog = Action(
