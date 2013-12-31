@@ -5,6 +5,8 @@ import eu.delving.basex.client._
 import org.basex.server.ClientSession
 import services.{BaseXController, BaseXConnection, BaseXBridge}
 import play.Logger
+import play.api.libs.json.JsValue
+import scala.compat.Platform
 
 object Document extends BaseXController {
 
@@ -46,9 +48,34 @@ object Document extends BaseXController {
     )
   }
 
+  case class HeaderFromClient(SchemaName: String, Identifier: String, Timestamp: String, SavedBy: String, Title:String)
+  case class DocumentFromClient(header: HeaderFromClient, body: JsValue, xml: String)
+
   def saveDocument() = Action(parse.json) {
     request =>
-      Logger.info(request.body.toString())
+      val IDENTIFIER = "#IDENTIFIER#"
+      val TIMESTAMP = "#TIMESTAMP#"
+      val time = Platform.currentTime.toString
+
+      val header = (request.body \ "header").as[JsValue]
+      //        "header":{"SchemaName":"Photo","Identifier":"OSCR-Photo-d8lopli-s55","Title":"First","TimeStamp":"#TIMESTAMP#","SavedBy":"OSCR-US-d2siboo-zj6"},
+      val body = (request.body \ "body").as[JsValue]
+      //        "body":{"Photo":{"Title":"First","Type":{"Identifier":"OSCR-VO-hqebnnet-sbi","Label":"Type Two"}}},
+      val xml = (request.body \ "xml").as[String]
+      val xmlTimestamped = xml.replace("#TIMESTAMP#", time)
+      Logger.info("Document timestamped: " + xmlTimestamped)
+      // <Document>
+      // <Header> <SchemaName>Photo</SchemaName> <Identifier>OSCR-Photo-d8lopli-s55</Identifier> <Title>First</Title> <TimeStamp>#TIMESTAMP#</TimeStamp> <SavedBy>OSCR-US-d2siboo-zj6</SavedBy> </Header>
+      // <Body> <Photo> <Title>First</Title> <Type> <Identifier>OSCR-VO-hqebnnet-sbi</Identifier> <Label>Type Two</Label> </Type> </Photo> </Body>
+      // </Document>
+
+
+
+
+    
+      //      Logger.info("Header: " + header)
+      //      Logger.info("Body  : " + body)
+      //      Logger.info("XML   : " + xml)
 //      P.saveDocument = function (envelope, receiver) {
 //        var s = this.services;
 //        var IDENTIFIER = '#IDENTIFIER#';
