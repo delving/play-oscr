@@ -20,3 +20,6 @@ test-result
 server.pid
 *.iml
 *.eml
+
+# Specific to this project
+oscr-app

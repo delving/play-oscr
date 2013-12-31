@@ -2,7 +2,6 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /                                                controllers.Application.index
 POST        /authenticate                                    controllers.Application.authenticate
 GET         /log                                             controllers.Application.getLog
 GET         /refreshSchemas                                  controllers.Application.refreshSchemas
@@ -41,4 +40,5 @@ POST        /document/save                                   controllers.Documen
 GET         /media/fetch/:fileName                           controllers.Media.getFile(fileName:String)
 GET         /media/thumbnail/:fileName                       controllers.Media.getThumbnail(fileName:String)
 
-GET         /assets/*file                                    controllers.Assets.at(path="/public", file)
+GET         /                                                controllers.Assets.at(path="/public/oscr-app", file = "index.html")
+GET         /*file                                           controllers.Assets.at(path="/public/oscr-app", file)

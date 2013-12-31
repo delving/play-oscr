@@ -11,7 +11,7 @@ class BaseXController extends Controller with BaseXBridge {
   def findOneResult(query: String, session: ClientSession): Result = {
     session.findOne(query) match {
       case Some(xml) => Ok(xml)
-      case None => NotFound
+      case None => Ok
     }
   }
 

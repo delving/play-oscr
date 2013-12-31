@@ -13,8 +13,6 @@ import scala.util.Success
 
 object Application extends BaseXController {
 
-  def index = Action(Ok(views.html.index("OSCR says hello!")))
-
   def getStatistics = Action {
     BaseXConnection.withSession {
       session =>

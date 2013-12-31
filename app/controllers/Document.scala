@@ -48,6 +48,7 @@ object Document extends BaseXController {
 
   def saveDocument() = Action(parse.json) {
     request =>
+      Logger.info(request.body.toString())
 //      P.saveDocument = function (envelope, receiver) {
 //        var s = this.services;
 //        var IDENTIFIER = '#IDENTIFIER#';
