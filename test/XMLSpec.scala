@@ -15,7 +15,7 @@ class XMLSpec extends FlatSpec {
       override def transform(node : Node):Node = node match {
 
         case Elem(prefix, "sub", attribs, scope, children ) =>
-          Elem(prefix, "sub", attribs, scope, true, children ++ Text("Great Gumby"))
+          Elem(prefix, "sub", attribs, scope, true, Text("Great Gumby"))
 
         case other => other
       }
