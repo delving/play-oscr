@@ -24,20 +24,8 @@ class XMLSpec extends FlatSpec {
     }
 
     object xf extends RuleTransformer(ChangeGumby)
-
     val changed = xf(xml)
-
     assert((changed \\ "@horse").text == "Nightshade")
-
     assert((changed \ "sub").text == "Great Gumby")
-
-    //
-//    val pp = new PrettyPrinter(width = 2, step = 1)
-//    Console println (pp format res)
-
-//    val xmlChanged = change(xml)
-//
-//    assert((xml \\ "@gumby").text == "scrappy")
-
   }
 }
