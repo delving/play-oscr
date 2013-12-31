@@ -13,11 +13,13 @@ class XMLSpec extends FlatSpec {
 
     object ChangeGumby extends RewriteRule {
       override def transform(node : Node):Node = node match {
+        case elem: Elem if elem.label == "sub" =>
+          elem.copy(
+            child = Seq(Text("Great Gumby")),
+            attributes = Attribute(null, "horse", "Nightshade", elem.attributes)
+          )
 
-        case Elem(prefix, "sub", attribs, scope, children ) =>
-          Elem(prefix, "sub", attribs, scope, true, Text("Great Gumby"))
-
-        case other => other
+        case whatever => whatever
       }
     }
 
@@ -25,7 +27,7 @@ class XMLSpec extends FlatSpec {
 
     val changed = xf(xml)
 
-    assert((changed \\ "@horse").text == "Steed")
+    assert((changed \\ "@horse").text == "Nightshade")
 
     assert((changed \ "sub").text == "Great Gumby")
 
