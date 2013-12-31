@@ -9,6 +9,7 @@ import scala.compat.Platform
 import scala.xml.transform.{RuleTransformer, RewriteRule}
 import scala.xml.{Attribute, Text, Elem, Node}
 import scala.concurrent.Future
+import java.io.ByteArrayInputStream
 
 object Document extends BaseXController {
 
@@ -50,7 +51,7 @@ object Document extends BaseXController {
     )
   }
 
-  def saveDocument() = Action.async(parse.json) {
+  def saveDocument() = Action(parse.json) {
     request =>
       // todo: use parse.xml, send only XML and remove the next two lines
       val legacyXmlAttribute = (request.body \ "xml").as[String]
@@ -71,25 +72,24 @@ object Document extends BaseXController {
       val stampedBody = Stamper(body)
       val fresh = (body \ "Header" \ "Identifier").text == ID_PLACEHOLDER
       val schemaName = (body \ "Header" \ "SchemaName").text
-      Logger.info("Document "+fresh+" timestamped: " + stampedBody)
+      val identifier: String = (stampedBody \ "Header" \ "Identifier").text
+      val file = s"/documents/$schemaName/$identifier.xml"
+      val xmlStream = new ByteArrayInputStream(stampedBody.toString().getBytes("utf-8"))
       BaseXConnection.withSession(
         session => {
           if (fresh) {
             if (schemaName == "MediaMetadata") {
-              // todo: save media, and then add document
-              Future(NotImplemented)
+                // todo: save media, and then add document
+              NotImplemented
             }
             else {
-              // todo: add document
-              Future(NotImplemented)
+              session.add(file, xmlStream)
+              Ok(stampedBody)
             }
           }
           else {
-            // todo: replace document
-            //          s.replace('replace document ' + hdr.Identifier,
-            //          s.docDocument(hdr.SchemaName, hdr.Identifier),
-            //          stamped,
-            Future(NotImplemented)
+            session.replace(file, xmlStream)
+            Ok(stampedBody)
           }
         }
       )
