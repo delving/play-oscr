@@ -76,7 +76,7 @@ object Document extends BaseXController {
       val file = s"/documents/$schemaName/$identifier.xml"
       val xmlStream = new ByteArrayInputStream(stampedBody.toString().getBytes("utf-8"))
       BaseXConnection.withSession(
-        session => {
+        session =>
           if (fresh) {
             if (schemaName == "MediaMetadata") {
                 // todo: save media, and then add document
@@ -91,7 +91,6 @@ object Document extends BaseXController {
             session.replace(file, xmlStream)
             Ok(stampedBody)
           }
-        }
       )
   }
 }

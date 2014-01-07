@@ -7,9 +7,6 @@ import java.util.Date
 
 object Person extends BaseXController {
 
-	//  app.post('/person/group/:identifier/add', function (req, res) {
-	//  app.post('/person/group/:identifier/remove', function (req, res) {
-
 	def getUser(identifier: String) = Action(
 		BaseXConnection.withSession(findOneResult(userPath(identifier), _))
 	)
@@ -27,24 +24,18 @@ object Person extends BaseXController {
 		)
 	)
 
-  def selectUsers(q: String) = Action {
-//    P.getUsers = function (search, receiver) {
-//      var s = this.services;
-//      s.query('get users ' + search,
-//      [
-//      '<Users>',
-//      '    { ' + s.userCollection() + '[',
-//        '      contains(lower-case(Profile/username), ' + util.quote(search) + ')',
-//        '      or contains(lower-case(Profile/email), ' + util.quote(search) + ')',
-//        '      or contains(lower-case(Profile/firstName), ' + util.quote(search) + ')',
-//        '      or contains(lower-case(Profile/lastName), ' + util.quote(search) + ')',
-//        '    ]}',
-//      '</Users>'
-//      ],
-//      receiver
-//      );
-//    };
-    NotImplemented
+  def selectUsers(search: String) = Action {
+      var quoteSearch = quote(search)
+      var query =
+        s"$userCollection[contains(lower-case(Profile/username), $quoteSearch) " +
+        s"or contains(lower-case(Profile/email), $quoteSearch) " +
+        s"or contains(lower-case(Profile/firstName), $quoteSearch) " +
+        s"or contains(lower-case(Profile/lastName), $quoteSearch)]"
+      BaseXConnection.withSession {
+        session =>
+          var xmlList = session.find(query).toList
+          Ok(<Users>{for (user <- xmlList) yield user}</Users>)
+      }
   }
 
   def selectGroup(q: String) = Action {
@@ -65,16 +56,17 @@ object Person extends BaseXController {
 	}
 
   //  app.get('/person/group/:identifier/users', function (req, res) {
-	def getUsersInGroup(identifier: String) = Action {
+	def getUsersInGroup(groupIdentifier: String) = Action {
 		BaseXConnection.withSession {
 			session =>
-				val query = <Users>{{ {userCollection}[Memberships/Membership/GroupIdentifier={quote(identifier)}] }}</Users>
+				val query = <Users>{{ {userCollection}[Memberships/Membership/GroupIdentifier={quote(groupIdentifier)}] }}</Users>
         findOneResult(query.toString(), session)
 		}
 	}
 
   def saveGroup = Action(parse.json) {
     request =>
+      // todo: the group should probably be sent as XML
 //      P.saveGroup = function (group, receiver) {
 //        var s = this.services;
 //        group.SaveTime = new Date().getTime();
@@ -114,58 +106,36 @@ object Person extends BaseXController {
       NotImplemented
   }
 
-  def addUserToGroup(identifier: String) = Action(parse.json) {
+  def addUserToGroup(groupIdentifier: String) = Action(parse.json) {
     request =>
-//      P.addUserToGroup = function (userIdentifier, role, groupIdentifier, receiver) {
-//        var s = this.services;
-//        var addition = userIdentifier + ' ' + role + ' ' + groupIdentifier;
-//        s.update('add user to group ' + addition,
-//        [
-//        'let $user := ' + s.userPath(userIdentifier),
-//        'let $mem := ' + '<Membership><GroupIdentifier>' + groupIdentifier + '</GroupIdentifier><Role>' + role + '</Role></Membership>',
-//        'return',
-//        'if (exists($user/Memberships/Membership[GroupIdentifier=' + util.quote(groupIdentifier) + ']))',
-//        'then ()',
-//        'else ( if (exists($user/Memberships))',
-//        'then (insert node $mem into $user/Memberships)',
-//        'else (insert node <Memberships>{$mem}</Memberships> into $user))'
-//        ],
-//        function (result) {
-//          if (result) {
-//            s.query('re-fetch user ' + addition,
-//            s.userPath(userIdentifier),
-//            receiver
-//            );
-//          }
-//          else {
-//            receiver(null);
-//          }
-//        }
-//        );
-//      };
+      val userIdentifier = (request.body \ "userIdentifier").as[String]
+      val userRole = (request.body \ "userRole").as[String]
+      val command =
+        s"let $$user := ${userPath(userIdentifier)} "+
+        s"let $$mem := <Membership><GroupIdentifier>$groupIdentifier</GroupIdentifier><Role>$userRole</Role></Membership> "
+        s"return "+
+        s"if (exists($$user/Memberships/Membership[GroupIdentifier=${quote(groupIdentifier)}] "+
+        "then ()"+
+        "if (exists($user/Memberships) "+
+        "then (insert node $mem into $user/Memberships) "+
+        "else (insert node <Memberships>{$mem}</Memberships> into $user))"
+      BaseXConnection.withSession(
+        session =>
+          execute(command, session)
+          // todo: respond with user
+      )
       NotImplemented
   }
 
-  def removeUserFromGroup(identifier: String) = Action(parse.json) {
+  def removeUserFromGroup(groupIdentifier: String) = Action(parse.json) {
     request =>
-//      P.removeUserFromGroup = function (userIdentifier, role, groupIdentifier, receiver) {
-//        var s = this.services;
-//        var addition = userIdentifier + ' ' + role + ' ' + groupIdentifier;
-//        s.update('remove user from group ' + addition,
-//        'delete node ' + s.userPath(userIdentifier) + '/Memberships/Membership[GroupIdentifier=' + util.quote(groupIdentifier) + ']',
-//        function (result) {
-//          if (result) {
-//            s.query('re-fetch user after remove membership ' + addition,
-//            s.userPath(userIdentifier),
-//            receiver
-//            );
-//          }
-//          else {
-//            receiver(null);
-//          }
-//        }
-//        );
-//      };
+      val userIdentifier = (request.body \ "userIdentifier").as[String]
+      val command = s"delete node ${userPath(userIdentifier)}/Memberships/Membership[GroupIdentifier=${quote(groupIdentifier)}]"
+      BaseXConnection.withSession(
+        session =>
+          execute(command, session)
+          // todo: respond with user
+      )
       NotImplemented
   }
 
