@@ -10,6 +10,8 @@ import play.api.libs.ws.{WS, Response}
 import play.Logger
 import play.api.libs.Crypto
 import play.mvc.Http
+import play.api.libs.json.JsValue
+import java.io.ByteArrayInputStream
 
 object Person extends BaseXController {
 
@@ -25,6 +27,45 @@ object Person extends BaseXController {
       .get()
   }
 
+  def getOrCreateUser(username: String, profile: JsValue) = {
+    Logger.info("get or create "+username+ " "+profile)
+    val query = s"$userCollection[Profile/username=${quote(username)}]"
+    val isPublic = (profile \ "isPublic").as[Boolean]
+    val firstName = (profile \ "firstName").as[String]
+    val lastName = (profile \ "lastName").as[String]
+    val email =(profile \ "email").as[String]
+    BaseXConnection.withSession {
+      session =>
+        session.findOne(query) match {
+          case Some(xml) =>
+            Ok(xml).as("text/xml")
+          case None =>
+            // todo: Memberships below should only happen when there are zero users.  use RewriteRule!
+            val userIdentifier = generateId("U")
+            val userXml =
+              <User>
+                <Identifier>{userIdentifier}</Identifier>
+                <Profile>
+                  <isPublic>{isPublic}</isPublic>
+                  <firstName>{firstName}</firstName>
+                  <lastName>{lastName}</lastName>
+                  <email>{email}</email>
+                </Profile>
+                <Memberships>
+                  <Membership>
+                    <GroupIdentifier>OSCR</GroupIdentifier>
+                    <Role>Administrator</Role>
+                  </Membership>
+                </Memberships>
+                <SaveTime>{new Date().getTime}</SaveTime>
+              </User>
+            val xmlStream = new ByteArrayInputStream(userXml.toString().getBytes("utf-8"))
+            session.add(userDocument(userIdentifier), xmlStream)
+            Ok(userXml)
+        }
+    }
+  }
+
   def authenticate() = Action.async(parse.json) {
     request =>
       var username = (request.body \ "username").as[String]
@@ -36,74 +77,12 @@ object Person extends BaseXController {
         response =>
           response.status match {
             case Http.Status.OK =>
-              // todo: getOrCreateUser
-              commonsRequest(s"/user/profile/$username").map(profileResponse => Ok(profileResponse.body))
+              commonsRequest(s"/user/profile/$username").map(profile => getOrCreateUser(username, profile.json))
             case _ =>
-              Future(Unauthorized("Username password didn't work, dude"))
+              Future(Unauthorized("Username password didn't work")) // todo: give them something they can react to
           }
       }
   }
-
-
-//  P.getOrCreateUser = function (profile, receiver) {
-//    var s = this.storage;
-//    var self = this;
-//    if (!profile.username) {
-//      throw new Error('No username in profile');
-//    }
-//
-//    function addUser(userObject) {
-//      var userXml = util.objectToXml(userObject, 'User');
-//      if (!userObject.Identifier) {
-//        console.trace('No Identifier in user object!');
-//      }
-//      s.add('add user ' + JSON.stringify(userObject),
-//      s.userDocument(userObject.Identifier),
-//      userXml,
-//      receiver
-//      );
-//    }
-//
-//    if (!profile.username) {
-//      console.trace('No Identifier in user object!');
-//    }
-//
-//    s.query(null,
-//      s.userCollection() + '[Profile/username=' + util.quote(profile.username) + ']',
-//    function (result) {
-//      if (result) {
-//        receiver(result);
-//      }
-//      else {
-//        var userObject = {
-//          Identifier: util.generateUserId(),
-//          Profile: profile,
-//          SaveTime: new Date().getTime()
-//        };
-//        log('counting users');
-//        s.query('count users',
-//        'count(' + s.userCollection() + ')',
-//        function (result) {
-//          log('count: ' + result);
-//          if (result === '0') {
-//            userObject.Memberships = {
-//              Membership: [
-//              {
-//                GroupIdentifier: 'OSCR',
-//                Role: 'Administrator'
-//              }
-//              ]
-//            };
-//          }
-//          addUser(userObject);
-//        }
-//        );
-//      }
-//    }
-//    );
-//  };
-
-
 
 	def getUser(identifier: String) = Action(
 		BaseXConnection.withSession(findOneResult(userPath(identifier), _))
