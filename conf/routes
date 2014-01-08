@@ -37,7 +37,7 @@ GET         /document/list/documents/:schemaName             controllers.Documen
 GET         /document/select/:schemaName                     controllers.Document.selectDocuments(schemaName: String, q: String)
 POST        /document/save                                   controllers.Document.saveDocument
 
-POST        /media                                           controllers.Media.uploadFile
+POST        /media-upload                                           controllers.Media.uploadFile
 GET         /media/fetch/:fileName                           controllers.Media.getFile(fileName:String)
 GET         /media/thumbnail/:fileName                       controllers.Media.getThumbnail(fileName:String)
 

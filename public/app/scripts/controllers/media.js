@@ -1,36 +1,15 @@
-'use strict';
+
 
 
 var OSCR = angular.module('OSCR');
 
 function log(message) {
-//    console.log(message);
+    console.log(message);
 }
 
 OSCR.controller(
-    'CollectionChoiceController',
-    function ($scope) {
-
-        $scope.annotationMode = true;
-        $scope.document = $scope.schema;
-        $scope.tree = null;
-
-        $scope.setTree = function (tree) {
-            var collectionTree = tree.elements[0]; // only "collection"
-            var json = JSON.stringify(tree);
-            $scope.prepareMediaUploadController(json, collectionTree);
-            return $scope.tree = collectionTree;
-        };
-
-        $scope.validateTree = function () {
-            if ($scope.tree) validateTree($scope.tree);
-        };
-    }
-);
-
-OSCR.controller(
     'MediaUploadController',
-    function ($rootScope, $scope, $http, $timeout, Document) {
+    function ($rootScope, $scope, $upload, $timeout) {
 
         $rootScope.checkLoggedIn();
 
@@ -40,128 +19,102 @@ OSCR.controller(
             url: '/files'
         };
 
-       function treeOf(file) {
-            if (!file.tree && $scope.treeJSON) file.tree = JSON.parse($scope.treeJSON);
-            return file.tree;
+        $scope.fileReaderSupported = window.FileReader != null;
+        $scope.uploadRightAway = true;
+        $scope.changeAngularVersion = function() {
+            window.location.hash = $scope.angularVersion;
+            window.location.reload(true);
         }
-
-        function getMimeType(fileName) {
-            var matches = fileName.match(/\.(...)$/);
-            var extension = matches[1].toLowerCase();
-            switch (extension) {
-                case 'jpg':
-                    return 'image/jpeg';
-                case 'png':
-                    return 'image/png';
-                case 'gif':
-                    return 'image/gif';
-                case 'mp4':
-                    return 'video/mp4';
-                default:
-                    log("UNRECOGNIZED extension: " + extension);
-                    return 'image/jpeg';
+        $scope.hasUploader = function(index) {
+            return $scope.upload[index] != null;
+        };
+        $scope.abort = function(index) {
+            $scope.upload[index].abort();
+            $scope.upload[index] = null;
+        };
+        $scope.angularVersion = window.location.hash.length > 1 ? window.location.hash.substring(1) : '1.2.0';
+        $scope.onFileSelect = function($files) {
+            $scope.selectedFiles = [];
+            $scope.progress = [];
+            if ($scope.upload && $scope.upload.length > 0) {
+                for (var i = 0; i < $scope.upload.length; i++) {
+                    if ($scope.upload[i] != null) {
+                        $scope.upload[i].abort();
+                    }
+                }
+            }
+            $scope.upload = [];
+            $scope.uploadResult = [];
+            $scope.selectedFiles = $files;
+            $scope.dataUrls = [];
+            for ( var i = 0; i < $files.length; i++) {
+                var $file = $files[i];
+                if (window.FileReader && $file.type.indexOf('image') > -1) {
+                    var fileReader = new FileReader();
+                    fileReader.readAsDataURL($files[i]);
+                    function setPreview(fileReader, index) {
+                        fileReader.onload = function(e) {
+                            $timeout(function() {
+                                $scope.dataUrls[index] = e.target.result;
+                            });
+                        }
+                    }
+                    setPreview(fileReader, i);
+                }
+                $scope.progress[i] = -1;
+                if ($scope.uploadRightAway) {
+                    $scope.start(i);
+                }
             }
         }
 
-        function fetchCommitted() {
-            Document.fetchAllDocuments($scope.schema, function (list) {
-                console.log("all documents fetched", list);
-                $scope.committedFiles = _.map(list, function (doc) {
-                    doc.thumbnail = '/media/thumbnail/' + doc.Header.Identifier;
-                    doc.date = new Date(parseInt(doc.Header.TimeStamp));
-                    return doc;
-                });
-            });
-        }
-        fetchCommitted();
-
-        $scope.prepareMediaUploadController = function (treeJSON, collectionTree) { // set by CollectionChoiceController
-            $scope.treeJSON = treeJSON;
-            $scope.collectionTree = collectionTree;
-            $http.get($scope.options.url).then(function (response) {
-                $scope.queue = response.data.files || [];
-            });
-        };
-
-        $scope.$watch('queue', function(queue, before) {
-            _.each(queue, function (file) {
-                treeOf(file);
-            });
-        });
-
-        $scope.commit = function (file) {
-            log('commit');
-            log(file);
-            var header = {
-                SchemaName: $scope.schema,
-                Identifier: '#IDENTIFIER#',
-                TimeStamp: "#TIMESTAMP#"
-            };
-            var body = {
-                GroupIdentifier: $rootScope.user.groupIdentifier,
-                UserIdentifier: $rootScope.user.Identifier,
-                FileName: '#IDENTIFIER#',
-                OriginalFileName: file.name,
-                MimeType: getMimeType(file.name)
-            };
-            Document.saveDocument(header, body, function (header) {
-                log("saved image");
-                log(header);
-                file.$destroy();
-                fetchCommitted();
-            });
-        };
-
-        $scope.fileDestroy = function (file) {
-            if ($rootScope.config.showTranslationEditor) return;
-            file.$destroy();
-        };
-
-        $scope.fileSubmit = function (file) {
-            if ($rootScope.config.showTranslationEditor) return;
-            console.log("submitted file is ", file);
-            file.$submit();
-        };
-
-        $scope.fileCancel = function (file) {
-            if ($rootScope.config.showTranslationEditor) return;
-            file.$cancel();
-        };
-    }
-);
-
-OSCR.controller(
-    'FileDestroyController',
-    function ($scope, $http, $timeout) {
-        var file = $scope.file, state;
-        if (file.url) {
-            $scope.commit(file);
-            file.$state = function () {
-                return state;
-            };
-            file.$destroy = function () {
-                state = 'pending';
-                return $http({
-                    url: file.deleteUrl,
-                    method: file.deleteType
-                }).then(
-                    function () {
-                        state = 'resolved';
-                        $scope.clear(file);
+        $scope.start = function(index) {
+            $scope.progress[index] = 0;
+            if ($scope.howToSend == 1) {
+                $scope.upload[index] = $upload.upload({
+                    url : '/media-upload',
+                    method: $scope.httpMethod,
+                    headers: {'myHeaderKey': 'myHeaderVal'},
+                    data : {
+                        myModel : $scope.myModel
                     },
-                    function () {
-                        state = 'rejected';
-                    }
-                );
-            };
-//            $timeout(function () {
-//                file.$destroy(); // as soon as you've got it, kill it
-//            }, 5000);
+                    /* formDataAppender: function(fd, key, val) {
+                     if (angular.isArray(val)) {
+                     angular.forEach(val, function(v) {
+                     fd.append(key, v);
+                     });
+                     } else {
+                     fd.append(key, val);
+                     }
+                     }, */
+                    file: $scope.selectedFiles[index],
+                    fileFormDataName: 'myFile'
+                }).then(function(response) {
+                        $scope.uploadResult.push(response.data.result);
+                    }, null, function(evt) {
+                        $scope.progress[index] = parseInt(100.0 * evt.loaded / evt.total);
+                    });
+            } else {
+                var fileReader = new FileReader();
+                fileReader.readAsArrayBuffer($scope.selectedFiles[index]);
+                fileReader.onload = function(e) {
+                    $scope.upload[index] = $upload.http({
+                        url: '/media-upload',
+                        headers: {'Content-Type': $scope.selectedFiles[index].type},
+                        data: e.target.result
+                    }).then(function(response) {
+                            $scope.uploadResult.push(response.data.result);
+                        }, null, function(evt) {
+                            // Math.min is to fix IE which reports 200% sometimes
+                            $scope.progress[index] = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                        });
+                }
+            }
         }
-        else if (!file.$cancel && !file._index) {
-            file.$cancel = function () {
-                $scope.clear(file);
-            };
-        }
+
+
+
+
+
     }
 );
