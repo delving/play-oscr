@@ -38,36 +38,6 @@ object Application extends BaseXController {
     }
   }
   
-  def commonsRequest(path: String): Future[Response] = {
-    val url: String = s"https://commons.delving.eu$path"
-    Logger.info("request:" + url)
-    WS.url(url)
-      .withQueryString(
-        ("apiToken", "6f941a84-cbed-4140-b0c4-2c6d88a581dd"),
-        ("apiOrgId", "delving"),
-        ("apiNode", "playground") // todo: change to OSCR
-      )
-      .get()
-  }
-
-  def authenticate() = Action.async(parse.json) {
-    request =>
-      var username = (request.body \ "username").as[String]
-      var password = (request.body \ "password").as[String]
-      val hashedPassword = MissingLibs.passwordHash(password, MissingLibs.HashType.SHA512)
-      val hash = Crypto.sign(hashedPassword, username.getBytes("utf-8"))
-
-      commonsRequest(s"/user/authenticate/$hash").flatMap {
-        response =>
-          response.status match {
-            case Http.Status.OK =>
-              commonsRequest(s"/user/profile/$username").map(profileResponse => Ok(profileResponse.body))
-            case _ =>
-              Future(Unauthorized("Username password didn't work, dude"))
-          }
-      }
-  }
-
   def getLog = Action {
     Logger.info("REPO ROOT "+FileRepo.getRepoRoot)
     BaseXConnection.withSession(findOneResult(logPath, _))

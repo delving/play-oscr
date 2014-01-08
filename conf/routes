@@ -2,7 +2,6 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST        /authenticate                                    controllers.Application.authenticate
 GET         /log                                             controllers.Application.getLog
 GET         /refreshSchemas                                  controllers.Application.refreshSchemas
 GET         /statistics                                      controllers.Application.getStatistics
@@ -14,6 +13,7 @@ POST        /i18n/:lang/label                                controllers.Languag
 POST        /i18n/:lang/element                              controllers.Language.setLangElement(lang: String)
 POST        /i18n/:lang/save                                 controllers.Language.saveLanguage(lang: String)
 
+POST        /authenticate                                    controllers.Person.authenticate
 GET         /person/user/fetch/:identifier                   controllers.Person.getUser(identifier: String)
 GET         /person/user/all                                 controllers.Person.getAllUsers
 GET         /person/user/select                              controllers.Person.selectUsers(q:String)
@@ -41,5 +41,5 @@ POST        /media                                           controllers.Media.u
 GET         /media/fetch/:fileName                           controllers.Media.getFile(fileName:String)
 GET         /media/thumbnail/:fileName                       controllers.Media.getThumbnail(fileName:String)
 
-GET         /                                                controllers.Assets.at(path="/public/oscr-app", file = "index.html")
-GET         /*file                                           controllers.Assets.at(path="/public/oscr-app", file)
+GET         /                                                controllers.Assets.at(path="/public/app", file = "index.html")
+GET         /*file                                           controllers.Assets.at(path="/public/app", file)

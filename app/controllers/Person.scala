@@ -1,11 +1,109 @@
 package controllers
 
+import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc._
 import eu.delving.basex.client._
-import services.{BaseXController, BaseXConnection}
+import services.{MissingLibs, BaseXController, BaseXConnection}
 import java.util.Date
+import scala.concurrent.Future
+import play.api.libs.ws.{WS, Response}
+import play.Logger
+import play.api.libs.Crypto
+import play.mvc.Http
 
 object Person extends BaseXController {
+
+  def commonsRequest(path: String): Future[Response] = {
+    val url: String = s"https://commons.delving.eu$path"
+    Logger.info("request:" + url)
+    WS.url(url)
+      .withQueryString(
+        ("apiToken", "6f941a84-cbed-4140-b0c4-2c6d88a581dd"),
+        ("apiOrgId", "delving"),
+        ("apiNode", "playground") // todo: change to OSCR
+      )
+      .get()
+  }
+
+  def authenticate() = Action.async(parse.json) {
+    request =>
+      var username = (request.body \ "username").as[String]
+      var password = (request.body \ "password").as[String]
+      val hashedPassword = MissingLibs.passwordHash(password, MissingLibs.HashType.SHA512)
+      val hash = Crypto.sign(hashedPassword, username.getBytes("utf-8"))
+
+      commonsRequest(s"/user/authenticate/$hash").flatMap {
+        response =>
+          response.status match {
+            case Http.Status.OK =>
+              // todo: getOrCreateUser
+              commonsRequest(s"/user/profile/$username").map(profileResponse => Ok(profileResponse.body))
+            case _ =>
+              Future(Unauthorized("Username password didn't work, dude"))
+          }
+      }
+  }
+
+
+//  P.getOrCreateUser = function (profile, receiver) {
+//    var s = this.storage;
+//    var self = this;
+//    if (!profile.username) {
+//      throw new Error('No username in profile');
+//    }
+//
+//    function addUser(userObject) {
+//      var userXml = util.objectToXml(userObject, 'User');
+//      if (!userObject.Identifier) {
+//        console.trace('No Identifier in user object!');
+//      }
+//      s.add('add user ' + JSON.stringify(userObject),
+//      s.userDocument(userObject.Identifier),
+//      userXml,
+//      receiver
+//      );
+//    }
+//
+//    if (!profile.username) {
+//      console.trace('No Identifier in user object!');
+//    }
+//
+//    s.query(null,
+//      s.userCollection() + '[Profile/username=' + util.quote(profile.username) + ']',
+//    function (result) {
+//      if (result) {
+//        receiver(result);
+//      }
+//      else {
+//        var userObject = {
+//          Identifier: util.generateUserId(),
+//          Profile: profile,
+//          SaveTime: new Date().getTime()
+//        };
+//        log('counting users');
+//        s.query('count users',
+//        'count(' + s.userCollection() + ')',
+//        function (result) {
+//          log('count: ' + result);
+//          if (result === '0') {
+//            userObject.Memberships = {
+//              Membership: [
+//              {
+//                GroupIdentifier: 'OSCR',
+//                Role: 'Administrator'
+//              }
+//              ]
+//            };
+//          }
+//          addUser(userObject);
+//        }
+//        );
+//      }
+//    }
+//    );
+//  };
+
+
 
 	def getUser(identifier: String) = Action(
 		BaseXConnection.withSession(findOneResult(userPath(identifier), _))
