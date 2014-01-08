@@ -120,11 +120,11 @@ object Person extends BaseXController {
         "then (insert node $mem into $user/Memberships) "+
         "else (insert node <Memberships>{$mem}</Memberships> into $user))"
       BaseXConnection.withSession(
-        session =>
+        session => {
           execute(command, session)
-          // todo: respond with user
+          findOneResult(userPath(userIdentifier), session)
+        }
       )
-      NotImplemented
   }
 
   def removeUserFromGroup(groupIdentifier: String) = Action(parse.json) {
@@ -132,11 +132,11 @@ object Person extends BaseXController {
       val userIdentifier = (request.body \ "userIdentifier").as[String]
       val command = s"delete node ${userPath(userIdentifier)}/Memberships/Membership[GroupIdentifier=${quote(groupIdentifier)}]"
       BaseXConnection.withSession(
-        session =>
+        session => {
           execute(command, session)
-          // todo: respond with user
+          findOneResult(userPath(userIdentifier), session)
+        }
       )
-      NotImplemented
   }
 
 }

@@ -3,7 +3,7 @@ package controllers
 import play.api.mvc._
 import play.api.libs.concurrent.Execution.Implicits._
 import eu.delving.basex.client._
-import services.{MissingLibs, BaseXController, BaseXConnection}
+import services.{FileRepo, MissingLibs, BaseXController, BaseXConnection}
 import play.api.libs.Crypto
 import play.api.libs.ws.{Response, WS}
 import play.mvc.Http
@@ -50,10 +50,10 @@ object Application extends BaseXController {
       .get()
   }
 
-  def authenticate() = Action.async(parse.urlFormEncoded) {
+  def authenticate() = Action.async(parse.json) {
     request =>
-      var username = request.body("username").head
-      var password = request.body("password").head
+      var username = (request.body \ "username").as[String]
+      var password = (request.body \ "password").as[String]
       val hashedPassword = MissingLibs.passwordHash(password, MissingLibs.HashType.SHA512)
       val hash = Crypto.sign(hashedPassword, username.getBytes("utf-8"))
 
@@ -68,9 +68,10 @@ object Application extends BaseXController {
       }
   }
 
-  def getLog = Action(
+  def getLog = Action {
+    Logger.info("REPO ROOT "+FileRepo.getRepoRoot)
     BaseXConnection.withSession(findOneResult(logPath, _))
-  )
+  }
 
   def refreshSchemas() = Action(
 //    this.refreshSchemas = function (receiver) {
